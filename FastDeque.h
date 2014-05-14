@@ -3,6 +3,7 @@
  * except pushing to back and poping from front.
  */
 #include <stdlib.h>
+#include "common.h"
 
 #ifndef _FAST_DEQUE_H_
 #define _FAST_DEQUE_H_
@@ -10,18 +11,18 @@
 typedef struct GFastDeque
 {
     // Following members are private
-    unsigned int _capacity;
-    unsigned int _front;
-    unsigned int _back;
-    void *       _elements[640];
+    u32 capacity;
+    u32 head; // front
+    u32 tail; // back
+    void * elements[640];
 } GFastDeque;
 
-GFastDeque * GFastDeque_Create();
+GFastDeque * GFastDeque_Create(void);
 
 void GFastDeque_PushBack(GFastDeque * This, void * data);
 
 void * GFastDeque_PopFront(GFastDeque * This);
 
-unsigned int GFastDeque_GetCount(const GFastDeque * This);
+bool GFastDeque_IsEmpty(const GFastDeque * This);
 
 #endif

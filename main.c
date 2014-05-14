@@ -8,8 +8,8 @@
 /* **************************************
 * Main function and global variables.
 ************************************** */
-const unsigned int WIDTH = 30;
-const unsigned int HEIGHT = 30;
+const u32 WIDTH = 30;
+const u32 HEIGHT = 30;
 
 int main(int argc, char **argv)
 {
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     // reuse pSpace in the while loop
     while (!pGoalSpace1 || !pGoalSpace2)
     {
-        if (GFastDeque_GetCount(pDeque) == 0)
+        if (GFastDeque_IsEmpty(pDeque))
         {
             // TBD
             break;
