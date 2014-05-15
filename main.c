@@ -1,12 +1,8 @@
 /*
  *
  */
-#ifdef _MSC_VER
 #include <stdio.h>
-#endif
-#ifdef _DEBUG
 #include <string.h>
-#endif
 #include "StandardSpace.h"
 #include "ParallelSpace.h"
 #include "FastDeque.h"
@@ -80,10 +76,8 @@ int main(int argc, char **argv)
 			GFastDeque_Destory(pSpace);
     }
 
-#ifdef _DEBUG
     if (pGoalSpace1 != NULL)
-		puts(GParallelSpace_Output(pGoalSpace1));
-#else
-#endif
+		printf("%s", GParallelSpace_Output(pGoalSpace1));
+	else
+		printf("0");
 }
-

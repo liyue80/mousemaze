@@ -108,10 +108,10 @@ bool GParallelSpace_TestGoal(const GParallelSpace * This, u32 x, u32 y)
 
 LPCSTR GParallelSpace_Output(const GParallelSpace * This)
 {
+	static char staticstring[4096] = {0};
 	u32 width;
 	u32 height;
 #ifdef _DEBUG
-	static char staticstring[4096] = {0};
 	u32 i = 0;
 	char * ptr = staticstring;
 #endif
@@ -128,11 +128,12 @@ LPCSTR GParallelSpace_Output(const GParallelSpace * This)
 	}
 
 	*ptr = '\0';
+#else
+	memcpy(staticstring, This->roadmap, width * height);
+	staticstring[width * height] = '\0';
+#endif
 
 	return staticstring;
-#else
-	return This->roadmap; //TBD roadmap is not a NULL terminal string.
-#endif
 }
 
 static u32 GParallelSpace_Offset(const GParallelSpace * This, u32 x, u32 y)
