@@ -6,6 +6,8 @@
 
 #ifdef _MSC_VER
 typedef int bool;
+#define false 0
+#define true 1
 #elif defined(__GNUC__)
 #include <stdbool.h>
 #endif

@@ -5,13 +5,16 @@
 #define _PARALLEL_SPACE_H_
 
 #include "common.h"
+#include "StandardSpace.h"
 
 typedef struct GParallelSpace_t
 {
     // Following members are private.
-    Size mapSize;
+	GStandardSpace * standardSpace;
     Position currentPos;
-    unsigned char * roadmap;
+	u32 distance;  // 已经移动的步数
+    u8 * roadmap;
+	u8 extData[1];
 } GParallelSpace;
 
 typedef enum Direction
@@ -19,7 +22,7 @@ typedef enum Direction
     UP, RIGHT, DOWN, LEFT
 } Direction;
 
-GParallelSpace * GParallelSpace_Create(u32 width, u32 height);
+GParallelSpace * GParallelSpace_Create(GStandardSpace * pStandardSpace);
 
 void GFastDeque_Destory(GParallelSpace * This);
 
