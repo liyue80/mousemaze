@@ -32,6 +32,7 @@ void GParallelSpace_InitializeEntry(GParallelSpace * This, u32 x, u32 y)
 
 GParallelSpace * GParallelSpace_Move(const GParallelSpace * This, Direction dir)
 {
+	GParallelSpace * dupSpace;
     Position test = This->currentPos;
 
     switch (dir)
@@ -61,10 +62,10 @@ GParallelSpace * GParallelSpace_Move(const GParallelSpace * This, Direction dir)
     if (This->roadmap[GParallelSpace_Offset(This, &test)] != '1')
         return NULL;
 
-    GParallelSpace * dup = (GParallelSpace *)malloc(sizeof(GParallelSpace));
-    memcpy(dup, This, sizeof(GParallelSpace));
-    dup->roadmap[GParallelSpace_Offset(This, &test)] = '2';
-    return dup;
+    dupSpace = (GParallelSpace *)malloc(sizeof(GParallelSpace));
+    memcpy(dupSpace, This, sizeof(GParallelSpace));
+    dupSpace->roadmap[GParallelSpace_Offset(This, &test)] = '2';
+    return dupSpace;
     
 }
 

@@ -33,9 +33,14 @@ void GFastDeque_PushBack(GFastDeque * This, void * data)
 
 void * GFastDeque_PopFront(GFastDeque * This)
 {
+	void * data;
+
     if (This->head == This->tail) // array is empty
+	{
         return NULL;
-    void * data = This->elements[This->head];
+	}
+
+    data = This->elements[This->head];
     This->head = GFastDeque_RoundPlusPlus(This, This->head);
     return data;
 }
