@@ -19,15 +19,19 @@ typedef enum Direction
     UP, RIGHT, DOWN, LEFT
 } Direction;
 
-GParallelSpace * GParallelSpace_Create();
+GParallelSpace * GParallelSpace_Create(u32 width, u32 height);
 
-void GParallelSpace_InitializeTable(GParallelSpace * This, u32 width, u32 height, LPCSTR mapInitStr);
+void GFastDeque_Destory(GParallelSpace * This);
+
+void GParallelSpace_InitializeTable(GParallelSpace * This, LPCSTR mapInitStr);
 
 void GParallelSpace_InitializeEntry(GParallelSpace * This, u32 x, u32 y);
 
 GParallelSpace * GParallelSpace_Move(const GParallelSpace * This, Direction dir);
 
 bool GParallelSpace_TestGoal(const GParallelSpace * This, u32 x, u32 y);
+
+LPCSTR GParallelSpace_Output(const GParallelSpace * This);
 
 #endif
 

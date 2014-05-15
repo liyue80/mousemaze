@@ -10,7 +10,7 @@ static u32 GFastDeque_RoundPlusPlus(const GFastDeque * This, u32 value);
 GFastDeque * GFastDeque_Create(void)
 {
     GFastDeque * fd = (GFastDeque*)malloc(sizeof(GFastDeque));
-    fd->capacity = 640;
+    fd->capacity = FAST_DEQUE_CAPACITY;
     fd->head = 0;
     fd->tail = 0;
     return fd;
@@ -19,7 +19,7 @@ GFastDeque * GFastDeque_Create(void)
 void GFastDeque_PushBack(GFastDeque * This, void * data)
 {
     u32 nextTail = GFastDeque_RoundPlusPlus(This, This->tail);
-
+	//printf("%d %d", This->head, This->tail);
     if (nextTail == This->head) // array if full
     {
         assert(0);
@@ -28,6 +28,7 @@ void GFastDeque_PushBack(GFastDeque * This, void * data)
 
     This->elements[This->tail] = data;
     This->tail = nextTail;
+	//printf(" => %d %d\n", This->head, This->tail);
     return;
 }
 
@@ -57,4 +58,3 @@ static u32 GFastDeque_RoundPlusPlus(const GFastDeque * This, u32 value)
         return 0;
     return value;
 }
-

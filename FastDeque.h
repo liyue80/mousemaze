@@ -8,13 +8,15 @@
 #ifndef _FAST_DEQUE_H_
 #define _FAST_DEQUE_H_
 
+#define FAST_DEQUE_CAPACITY 10240
+
 typedef struct GFastDeque
 {
     // Following members are private
     u32 capacity;
     u32 head; // front
     u32 tail; // back
-    void * elements[640];
+    void * elements[FAST_DEQUE_CAPACITY];
 } GFastDeque;
 
 GFastDeque * GFastDeque_Create(void);
