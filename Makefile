@@ -6,7 +6,8 @@ ifeq ($(DEBUG),YES)
 	LDFLAGS = -g
 else
 	OBJS = main.o
-	CFLAGS = -O2 -pipe -mmmx -msse3 -minline-all-stringops
+	CFLAGS = -O2 -minline-all-stringops
+	#-pipe -mmmx -msse3 
 	LDFLAGS = -Wl,-O2 -Wl,--as-needed -s
 endif
 

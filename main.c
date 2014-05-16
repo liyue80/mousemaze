@@ -6,6 +6,10 @@
 #endif
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+#define PERFORMANCE_TEST 0    // 开启性能测试模式  默认值：0
+#define FRIENDLY_OUTPUT  0    // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
@@ -19,6 +23,7 @@
 typedef unsigned long ulong;
 typedef unsigned long long ulonglong;
 
+// 互为相反数，可简化代码
 #define LEFT  -2
 #define UP    -1
 #define DOWN   1
@@ -31,9 +36,8 @@ typedef struct node_t
 } node_t;
 
 char   input[WIDTH*HEIGHT+2];
+char   deathmap[WIDTH*HEIGHT+2];
 node_t nodes[WIDTH*HEIGHT];
-
-#define PERFORMANCE_TEST 0
 
 #if PERFORMANCE_TEST
 static __inline ulonglong read_counter()
@@ -107,7 +111,7 @@ void output(ulong offset)
 
         map[900] = 0;
 
-#if 1
+#if !FRIENDLY_OUTPUT
 #if !PERFORMANCE_TEST
 		printf((const char*)map);
 #endif
@@ -129,6 +133,60 @@ void output(ulong offset)
 #define check_point
 #endif
 
+// 统计地图中'1'的个数
+int onecount()
+{
+    const char * p = (char *)input;
+	int a = strlen(input);
+    ulong count = 0;
+    do
+    {
+        count += (*p - '0');
+    } while (*(++p));
+
+    return count;
+}
+
+// 被death()调用，递归扩展'0'，直到遇到底边界时返回1，或者遇到其它边界时返回0.
+int spread(ulong offset)
+{
+    if (offset > 898)
+        return 0;
+    if (deathmap[offset] != '0')
+        return 0;
+    if (offset > 870)
+        return 1;
+    deathmap[offset] = '4';
+    
+    if (spread(offset+WIDTH))   return 1;
+    if (spread(offset+WIDTH-1)) return 1;
+    if (spread(offset+WIDTH+1)) return 1;
+
+    return 0;
+}
+
+// 判断地图是否是死图，即无路径连接出口和入口。
+int death()
+{
+	ulong offsets[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,59,89,119,149,179,209,239,269,299,329,359,389,419,449,479,509,539,569,599,629,659,689,719,749,779,809,839,869,0};
+    ulong *p;
+
+	memcpy((void*)deathmap, (const void*)input, sizeof(deathmap));
+
+    for (p = offsets; *p != 0; p++)
+	{
+        if (deathmap[*p] == '0')
+        {
+            deathmap[*p] = '4';
+            if (spread(*p+WIDTH))   return 1;
+            if (spread(*p+WIDTH-1)) return 1;
+            if (spread(*p+WIDTH+1)) return 1;
+        }
+	}
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
 	init_cp;
@@ -147,6 +205,19 @@ int main(int argc, char **argv)
 #else
 	gets((char*)input);
 #endif
+    
+    check_point;
+	if (onecount() > 600)
+	{
+		if (death())
+		{
+            check_point;
+#if !PERFORMANCE_TEST
+			printf("00");
+#endif
+			exit(0);
+		}
+	}
 
     check_point;
 
