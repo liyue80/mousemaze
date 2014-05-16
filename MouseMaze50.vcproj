@@ -186,6 +186,10 @@
 				RelativePath=".\ParallelSpace.c"
 				>
 			</File>
+			<File
+				RelativePath=".\StandardSpace.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -206,6 +210,10 @@
 			</File>
 			<File
 				RelativePath=".\ParallelSpace.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StandardSpace.h"
 				>
 			</File>
 		</Filter>
