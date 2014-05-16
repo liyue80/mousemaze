@@ -31,8 +31,6 @@ char  map_data[HEIGHT+1][WIDTH];
 uauto map_distance[HEIGHT][WIDTH];
 sauto map_direct[HEIGHT][WIDTH];
 
-uauto goal = 0;
-
 static __inline u64 read_counter()
 {
     u64 ts;
@@ -55,7 +53,6 @@ void move(uauto x, uauto y, uauto distance, sauto direct)
 
     if ( (*map_data_xy) == '1' && (*map_distance_xy) > distance)
     {
-        if ((x==0&&y==0) || (x==0&&y==29)) goal++;
         (*map_distance_xy) = distance;
         (*map_direct_xy) = -direct;
 
