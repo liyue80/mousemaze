@@ -1,29 +1,21 @@
+OUTPUT = main.exe
+
 ifeq ($(DEBUG),YES)
-	CFLAGS = -O -g -pipe -D_DEBUG
+	OBJS = main.o FastDeque.o FixedMemPool.o ParallelSpace.o StandardSpace.o Performance.o Common.o
+	CFLAGS = -O -g -pipe -D_DEBUG -DPERFORMANCE_TEST
 	LDFLAGS = -g
 else
+	OBJS = main.o FastDeque.o FixedMemPool.o ParallelSpace.o StandardSpace.o Common.o
 	CFLAGS = -O2 -pipe -mmmx -msse3 -minline-all-stringops
 	LDFLAGS = -Wl,-O2 -Wl,--as-needed -s
 endif
 
-all: main.o FastDeque.o FixedMemPool.o ParallelSpace.o StandardSpace.o
-	$(CC) $(LDFLAGS) main.o FastDeque.o FixedMemPool.o ParallelSpace.o StandardSpace.o -o main.exe
+all: $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $(OUTPUT)
 
-main.o: main.c Common.h
-	$(CC) $(CFLAGS) main.c -c
-
-FastDeque.o: FastDeque.c FastDeque.h Common.h
-	$(CC) $(CFLAGS) FastDeque.c -c
-
-FixedMemPool.o: FixedMemPool.c FixedMemPool.h Common.h
-	$(CC) $(CFLAGS) FixedMemPool.c -c
-
-ParallelSpace.o: ParallelSpace.c ParallelSpace.h Common.h
-	$(CC) $(CFLAGS) ParallelSpace.c -c
-
-StandardSpace.o: StandardSpace.c StandardSpace.h Common.h
-	$(CC) $(CFLAGS) StandardSpace.c -c
+%.o: %.c %.h
+	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
 	del *.o
-	del main.exe
+	del $(OUTPUT)

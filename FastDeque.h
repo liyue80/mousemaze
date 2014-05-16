@@ -2,7 +2,6 @@
  * Implement a deque, which cannot modify its elements
  * except pushing to back and poping from front.
  */
-#include <stdlib.h>
 #include "common.h"
 
 #ifndef _FAST_DEQUE_H_

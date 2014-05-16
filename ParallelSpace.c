@@ -1,7 +1,6 @@
 /*
  *
  */
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "ParallelSpace.h"
@@ -19,7 +18,7 @@ GParallelSpace * GParallelSpace_Create(GStandardSpace * pStandardSpace)
 
 	GStandardSpace_GetSpaceSize(pStandardSpace, &width, &height);
 
-	ptr = (GParallelSpace*)malloc(sizeof(GParallelSpace) + width * height);
+	ptr = (GParallelSpace*)mem_alloc(sizeof(GParallelSpace) + width * height);
 
 	ptr->standardSpace = pStandardSpace;
 	ptr->roadmap = ptr->extData;
@@ -30,7 +29,7 @@ GParallelSpace * GParallelSpace_Create(GStandardSpace * pStandardSpace)
 
 void GFastDeque_Destory(GParallelSpace * This)
 {
-	free(This);
+	mem_free(This);
 }
 
 void GParallelSpace_InitializeTable(GParallelSpace * This, LPCSTR mapInitStr)

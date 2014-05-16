@@ -9,7 +9,7 @@ static u32 GFastDeque_RoundPlusPlus(const GFastDeque * This, u32 value);
 
 GFastDeque * GFastDeque_Create(void)
 {
-    GFastDeque * fd = (GFastDeque*)malloc(sizeof(GFastDeque));
+    GFastDeque * fd = (GFastDeque*)mem_alloc(sizeof(GFastDeque));
     fd->capacity = FAST_DEQUE_CAPACITY;
     fd->head = 0;
     fd->tail = 0;

@@ -1,13 +1,12 @@
 /*
  *
  */
-#include <stdlib.h>
 #include <string.h>
 #include "StandardSpace.h"
 
 GStandardSpace * GStandardSpace_Create(u32 width, u32 height)
 {
-	GStandardSpace * ptr = (GStandardSpace *)malloc(sizeof(GStandardSpace) + width * height * sizeof(u32));
+	GStandardSpace * ptr = (GStandardSpace *)mem_alloc(sizeof(GStandardSpace) + width * height * sizeof(u32));
 
 	ptr->mapSize.width = width;
 	ptr->mapSize.height = height;
