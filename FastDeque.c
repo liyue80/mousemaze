@@ -7,6 +7,9 @@
 
 static u32 GFastDeque_RoundPlusPlus(const GFastDeque * This, u32 value);
 
+// 测试deque需要的容量
+u32 u32DequeMax = 0;
+
 GFastDeque * GFastDeque_Create(void)
 {
     GFastDeque * fd = (GFastDeque*)mem_alloc(sizeof(GFastDeque));
@@ -29,6 +32,17 @@ void GFastDeque_PushBack(GFastDeque * This, void * data)
     This->elements[This->tail] = data;
     This->tail = nextTail;
 	//printf(" => %d %d\n", This->head, This->tail);
+
+	// 测试deque的最大容量
+	{
+		u32 count;
+		if (This->tail >= This->head)
+			count = This->tail - This->head;
+		else
+			count = This->capacity - This->head + This->tail;
+
+		u32DequeMax = max(u32DequeMax, count);
+	}
     return;
 }
 

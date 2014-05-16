@@ -25,6 +25,8 @@ GPerformance pfMalloc = {0};
 GPerformance pfTotal = {0};
 #endif
 
+extern u32 u32DequeMax;
+
 int main(int argc, char **argv)
 {
     char inputs[WIDTH * HEIGHT + 100];
@@ -35,7 +37,7 @@ int main(int argc, char **argv)
     GParallelSpace * pGoalSpace2 = NULL;
 
 #if defined(PERFORMANCE_TEST)
-    strcpy(inputs, C2);
+    strcpy(inputs, C3);
     pfTotal.summary = 0;
     strcpy(pfTotal.name, "total");
     strcpy(pfMalloc.name, "malloc");
@@ -106,6 +108,8 @@ int main(int argc, char **argv)
 	GPerformance_Pause(&pfTotal);
     GPerformance_Output(&pfTotal);
     GPerformance_Output(&pfMalloc);
+
+	printf("Max deque used : %u\n", u32DequeMax);
 	return 0;
 }
 

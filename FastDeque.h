@@ -7,7 +7,7 @@
 #ifndef _FAST_DEQUE_H_
 #define _FAST_DEQUE_H_
 
-#define FAST_DEQUE_CAPACITY 10240
+#define FAST_DEQUE_CAPACITY 900
 
 typedef struct GFastDeque
 {
