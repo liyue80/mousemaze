@@ -3,10 +3,6 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include "StandardSpace.h"
-#include "ParallelSpace.h"
-#include "FastDeque.h"
-#include "Performance.h"
 
 /* **************************************
 * Main function and global variables.
@@ -19,89 +15,128 @@
 #define C2 "111110000000000000000000000011110010111111111110111111110100110010100000010000100000010010110011111100010000100111110010110010100101111110100000010010110110100101111110111111111110111010100101111110100000010010110010100101111110101111110010110010100101111110100000010010110110100101111110111111010110111010100101111110100000010010110010110111111111100000010010110010101001010100101111110110110010100101010101100000010010010010100001010110111111110110010010111101010100111111110010011110100000010101111111110110000000100000000110111111110010111011111111110100111111110010101011100000000100111111110010101011100000000101100000001110101011111111110110100000000010101011100000001100101111111110111000101001000100100000000000001000101001000000111111111111011111111111111110010000010001010100101010010010001010100111010100101010010011111111100100010100101110010100101010111111110111100011110000000000000001"
 #define C3 "111110000100010010101001000011110010111111111110111111110100110010100000010000100000010011110011111100010000101111110010110010100101111110100000010010110110100101111110111111111111111010100101111110100000010010110010100101111110101111110010110010100101111110100000010010110110100101111110111111010111111010100101111110100000010010110010110111111111100000010010110010101001010100101111110111110010100101010101100000010010010010100001010110111111110111010010111101010100111111110010011110100000010101111111110111000000100000010110111111110010111011111111110100111111110010101011100000010100111111110010101011100000010101100000001111101011111111110110100000000010101011100000001100101111111111111000101001110100101000000000001000001001000000111111111111011111111111111110010000010001010100101010010010001010100111010100101010010011111111100100010100101110010100101010111111110111100011110000000000101101"
 
-#if defined(PERFORMANCE_TEST)
-GPerformance pfMem = {0};
-GPerformance pfTotal = {0};
-#endif
+typedef int sauto;
+typedef unsigned int  uauto;
+typedef unsigned int  u32;
+typedef unsigned long long u64;
 
-int main(int argc, char **argv)
+#define LEFT  -2
+#define UP    -1
+#define DOWN   1
+#define RIGHT  2
+
+char  map_data[HEIGHT+1][WIDTH];
+uauto map_distance[HEIGHT][WIDTH];
+sauto map_direct[HEIGHT][WIDTH];
+
+uauto goal = 0;
+
+static __inline u64 read_counter()
 {
-    char inputs[WIDTH * HEIGHT + 100];
-	GFastDeque dequeForSpaces;
-	GParallelSpace Space;
-	GStandardSpace StandardSpace;
-    GParallelSpace GoalSpace1;
-    GParallelSpace GoalSpace2;
-    bool goal1 = false;
-    bool goal2 = false;
-
-#if defined(PERFORMANCE_TEST)
-    strcpy(inputs, C2);
-    pfTotal.summary = 0;
-    strcpy(pfTotal.name, "total");
-    strcpy(pfMem.name, "memory");
+    u64 ts;
+#if defined(_MSC_VER)
+    QueryPerformanceCounter((LARGE_INTEGER*)&ts);
 #else
-    gets(inputs);
+    u32 ts1, ts2;
+    __asm__ __volatile__("rdtsc\n\t":"=a"(ts1), "=d"(ts2));
+    ts = ((u64) ts2 << 32) | ((u64) ts1);
 #endif
+    return ts;
+}
 
-    GPerformance_Resume(&pfTotal);
-
-	GStandardSpace_Initialize(&StandardSpace);
-    GParallelSpace_Initialize(&Space, &StandardSpace);
-    GParallelSpace_InitializeTable(&Space, inputs);
-    GParallelSpace_InitializeEntry(&Space, 29, 29);
-
-	GFastDeque_Initialize(&dequeForSpaces);
-    GFastDeque_PushBack(&dequeForSpaces, &Space);
-
-    // reuse pSpace in the while loop
-    while (!goal1 || !goal2)
+void move(uauto x, uauto y, uauto distance, sauto direct)
+{
+    //u32 offset = y*WIDTH+x;
+    if (map_data[y][x] == '1' && map_distance[y][x] > distance)
     {
-        Direction dir;
+        if ((x==0&&y==0) || (x==0&&y==29)) goal++;
+        //map_data[y][x] = '2';
+        map_distance[y][x] = distance;
+        map_direct[y][x] = -direct;
 
-        if (!GFastDeque_PopFront(&dequeForSpaces, &Space))
+        //if (goal <2)
         {
-            break;
-        }
-
-		for ( dir = LEFT; dir <= DOWN; dir++ )
-        {
-            GParallelSpace NextSpace;
-            if (!GParallelSpace_Move(&Space, dir, &NextSpace))
-                continue;
-
-            if ((!goal1) && GParallelSpace_TestGoal(&NextSpace, 0, 0))
-            {
-                mem_cpy(&GoalSpace1, &NextSpace, sizeof(GParallelSpace));
-				goal1 = true;
-            }
-
-            if ((!goal2) && GParallelSpace_TestGoal(&NextSpace, 0, 29))
-            {
-                mem_cpy(&GoalSpace2, &NextSpace, sizeof(GParallelSpace));
-				goal2 = true;
-            }
-
-			//printf("(%d,%d)->(%d,%d) ", pSpace->currentPos.x, pSpace->currentPos.y, pParallel->currentPos.x, pParallel->currentPos.y);
-            GFastDeque_PushBack(&dequeForSpaces, &NextSpace);
+            if (x>0) move(x-1, y, distance+1, LEFT);
+            if (y>0) move(x, y-1, distance+1, UP);
+            if (x<WIDTH-1) move(x+1, y, distance+1, RIGHT);
+            if (y<HEIGHT-1) move(x, y+1, distance+1, DOWN);
         }
     }
+}
 
-#ifndef PERFORMANCE_TEST
-    if (goal1)
-		printf("%s", GParallelSpace_Output(&GoalSpace1));
-	else
-		printf("0");
+void draw(const char *map)
+{
+	int i, j;
+	for (i=0; i<HEIGHT; i++)
+	{
+		for(j=0; j<WIDTH; j++)
+			printf("%c", map[WIDTH*i+j]);
+		printf("\n");
+	}
+	printf("\n");
+}
 
-    if (goal2)
-		printf("%s", GParallelSpace_Output(&GoalSpace2));
-	else
+void output(uauto x, uauto y)
+{
+	if (map_distance[y][x] == (uauto)-1)
+	{
 		printf("0");
+	}
+    else
+    {
+        char map[HEIGHT+1][WIDTH];
+        memcpy((void*)map, (const void*)map_data, sizeof(char)*WIDTH*HEIGHT);
+        map[y][x] = '2';
+
+        do
+		{
+			if (map_direct[y][x] == RIGHT) x++;
+            else if (map_direct[y][x] == DOWN) y++;
+            else if (map_direct[y][x] == UP) y--;
+            else x--;
+			map[y][x] = '2';
+		} while(map_distance[y][x] != 0);
+        map[HEIGHT][0] = 0;
+#if 1
+		//printf((const char*)map);
+#else
+		draw((const char*)map);
 #endif
+    }
+}
 
-	GPerformance_Pause(&pfTotal);
-    GPerformance_Output(&pfTotal);
-    GPerformance_Output(&pfMem);
-	return 0;
+#define init_cp                                 \
+    u64 tick = read_counter()
+    
+#define check_point                             \
+    printf(" : %lld\n", read_counter() - tick); \
+    tick = read_counter()
+
+int main()
+{
+    gets((char*)map_data);
+	//strcpy((char*)map_data, C2);
+
+    init_cp;
+
+	memset((void*)map_distance, 0xff, sizeof(map_distance));
+	//memset((void*)map_direct, 0, sizeof(map_direct));
+
+    map_data[29][29] = '2';
+    map_distance[29][29] = 0;
+
+    check_point;
+
+    move(28, 29, 1, LEFT);
+    move(29, 28, 1, UP);
+
+    check_point;
+
+    output(0, 0);
+    output(0, 29);
+
+    check_point;
+
+    return 0;
 }
 

@@ -1,11 +1,11 @@
 OUTPUT = main.exe
 
 ifeq ($(DEBUG),YES)
-	OBJS = main.o FastDeque.o ParallelSpace.o StandardSpace.o Performance.o Common.o
-	CFLAGS = -O -g -pipe -D_DEBUG -DPERFORMANCE_TEST
+	OBJS = main.o
+	CFLAGS = -O -g -pipe -D_DEBUG
 	LDFLAGS = -g
 else
-	OBJS = main.o FastDeque.o ParallelSpace.o StandardSpace.o Common.o
+	OBJS = main.o
 	CFLAGS = -O2 -pipe -mmmx -msse3 -minline-all-stringops
 	LDFLAGS = -Wl,-O2 -Wl,--as-needed -s
 endif
