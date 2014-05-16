@@ -31,6 +31,9 @@ char  map_data[HEIGHT+1][WIDTH];
 uauto map_distance[HEIGHT][WIDTH];
 sauto map_direct[HEIGHT][WIDTH];
 
+#define PERFORMANCE_TEST 0
+
+#if PERFORMANCE_TEST
 static __inline u64 read_counter()
 {
     u64 ts;
@@ -43,6 +46,7 @@ static __inline u64 read_counter()
 #endif
     return ts;
 }
+#endif
 
 void move(uauto x, uauto y, uauto distance, sauto direct)
 {
@@ -97,31 +101,42 @@ void output(uauto x, uauto y)
 		} while(map_distance[y][x] != 0);
         map[HEIGHT][0] = 0;
 #if 1
-		//printf((const char*)map);
+#if !PERFORMANCE_TEST
+		printf((const char*)map);
+#endif
 #else
 		draw((const char*)map);
 #endif
     }
 }
 
+#if PERFORMANCE_TEST
 #define init_cp                                 \
     u64 tick = 0
     
 #define check_point                             \
     printf(" : %lld\n", read_counter() - tick); \
     tick = read_counter()
+#else
+#define init_cp
+#define check_point
+#endif
 
 int main()
 {
 	init_cp;
 
-	//gets((char*)map_data);
+#if PERFORMANCE_TEST
 	strcpy((char*)map_data, C2);
+#else
+	gets((char*)map_data);
+#endif
 
     check_point;
 
 	memset((void*)map_distance, 0xff, sizeof(map_distance));
-	//memset((void*)map_direct, 0, sizeof(map_direct));
+
+    check_point;
 
     map_data[29][29] = '2';
     map_distance[29][29] = 0;
