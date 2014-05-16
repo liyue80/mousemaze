@@ -1,9 +1,11 @@
 /*
  *
  */
+#ifdef _MSC_VER
+#include <Windows.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-
 /* **************************************
 * Main function and global variables.
 ************************************** */
@@ -46,21 +48,21 @@ static __inline u64 read_counter()
 
 void move(uauto x, uauto y, uauto distance, sauto direct)
 {
-    //u32 offset = y*WIDTH+x;
-    if (map_data[y][x] == '1' && map_distance[y][x] > distance)
+    const u32 offset = (y<<5) - (y<<1) + x;// y*WIDTH+x;
+    char * map_data_xy = ((char*)map_data) + offset;
+    uauto * map_distance_xy = ((uauto*)map_distance) + offset;
+    sauto * map_direct_xy = ((sauto*)map_direct) + offset;
+
+    if ( (*map_data_xy) == '1' && (*map_distance_xy) > distance)
     {
         if ((x==0&&y==0) || (x==0&&y==29)) goal++;
-        //map_data[y][x] = '2';
-        map_distance[y][x] = distance;
-        map_direct[y][x] = -direct;
+        (*map_distance_xy) = distance;
+        (*map_direct_xy) = -direct;
 
-        //if (goal <2)
-        {
-            if (x>0) move(x-1, y, distance+1, LEFT);
-            if (y>0) move(x, y-1, distance+1, UP);
-            if (x<WIDTH-1) move(x+1, y, distance+1, RIGHT);
-            if (y<HEIGHT-1) move(x, y+1, distance+1, DOWN);
-        }
+        if (x>0) move(x-1, y, distance+1, LEFT);
+        if (y>0) move(x, y-1, distance+1, UP);
+        if (x<WIDTH-1) move(x+1, y, distance+1, RIGHT);
+        if (y<HEIGHT-1) move(x, y+1, distance+1, DOWN);
     }
 }
 
@@ -106,7 +108,7 @@ void output(uauto x, uauto y)
 }
 
 #define init_cp                                 \
-    u64 tick = read_counter()
+    u64 tick = 0
     
 #define check_point                             \
     printf(" : %lld\n", read_counter() - tick); \
@@ -114,10 +116,12 @@ void output(uauto x, uauto y)
 
 int main()
 {
-    gets((char*)map_data);
-	//strcpy((char*)map_data, C2);
+	init_cp;
 
-    init_cp;
+	//gets((char*)map_data);
+	strcpy((char*)map_data, C2);
+
+    check_point;
 
 	memset((void*)map_distance, 0xff, sizeof(map_distance));
 	//memset((void*)map_direct, 0, sizeof(map_direct));
