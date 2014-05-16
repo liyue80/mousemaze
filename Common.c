@@ -7,23 +7,12 @@
 #include "Performance.h"
 
 #if defined(PERFORMANCE_TEST)
-extern GPerformance pfMalloc;
+extern GPerformance pfMem;
 #endif
 
-void * mem_alloc(u32 size)
+void mem_cpy(void *d, const void *s, u32 n)
 {
-	void * p;
-
-	GPerformance_Resume(&pfMalloc);
-
-	p = malloc(size);
-
-    GPerformance_Pause(&pfMalloc);
-
-	return p;
-}
-
-void mem_free(void *ptr)
-{
-	free(ptr);
+	pf_resume(&pfMem);
+	memcpy(d, s, n);
+    pf_pause(&pfMem);
 }

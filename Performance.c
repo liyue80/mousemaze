@@ -1,10 +1,13 @@
 /*
 */
 #include <stdio.h>
+#include <string.h>
 #ifdef _MSC_VER
 #include <windows.h>
 #endif
 #include "Performance.h"
+
+extern GPerformance pfMem;
 
 static __inline u64 read_counter()
 {

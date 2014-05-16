@@ -23,8 +23,7 @@ typedef unsigned long long u64;
 typedef char * LPSTR;
 typedef const char * LPCSTR;
 
-void * mem_alloc(u32);
-void   mem_free(void *);
+void mem_cpy(void *d, const void *s, u32 n);
 
 #endif
 

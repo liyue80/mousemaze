@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include "ParallelSpace.h"
+#include "Performance.h"
 
 void GParallelSpace_Initialize(GParallelSpace * This, GStandardSpace * pStandardSpace)
 {
@@ -13,7 +14,7 @@ void GParallelSpace_Initialize(GParallelSpace * This, GStandardSpace * pStandard
 
 void GParallelSpace_InitializeTable(GParallelSpace * This, LPCSTR mapInitStr)
 {
-	memcpy(This->roadmap, mapInitStr, WIDTH * HEIGHT);
+	mem_cpy(This->roadmap, mapInitStr, WIDTH * HEIGHT);
 }
 
 void GParallelSpace_InitializeEntry(GParallelSpace * This, u32 x, u32 y)
@@ -58,7 +59,7 @@ bool GParallelSpace_Move(const GParallelSpace * This, Direction dir, GParallelSp
 	if (!GStandardSpace_SetDistance(This->standardSpace, xx, yy, This->distance + 1))
 		return false;
 
-	memcpy(pNextSpace, This, sizeof(GParallelSpace));
+	mem_cpy(pNextSpace, This, sizeof(GParallelSpace));
 	pNextSpace->roadmap[yy][xx] = '2';
 	pNextSpace->x = xx;
 	pNextSpace->y = yy;
@@ -83,7 +84,7 @@ LPCSTR GParallelSpace_Output(const GParallelSpace * This)
 #ifdef _DEBUG
 	for (i = 0; i < HEIGHT; i++)
 	{
-		memcpy(ptr, &This->roadmap[i][0], WIDTH);
+		mem_cpy(ptr, &This->roadmap[i][0], WIDTH);
 		ptr += WIDTH;
 		*ptr++ = 0x0D;
 		*ptr++ = 0x0A;
@@ -93,7 +94,7 @@ LPCSTR GParallelSpace_Output(const GParallelSpace * This)
 	*ptr++ = 0x0A;
 	*ptr = '\0';
 #else
-	memcpy(staticstring, This->roadmap, WIDTH * HEIGHT);
+	mem_cpy(staticstring, This->roadmap, WIDTH * HEIGHT);
 	staticstring[WIDTH * HEIGHT] = '\0';
 #endif
 

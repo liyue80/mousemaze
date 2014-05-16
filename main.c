@@ -20,7 +20,7 @@
 #define C3 "111110000100010010101001000011110010111111111110111111110100110010100000010000100000010011110011111100010000101111110010110010100101111110100000010010110110100101111110111111111111111010100101111110100000010010110010100101111110101111110010110010100101111110100000010010110110100101111110111111010111111010100101111110100000010010110010110111111111100000010010110010101001010100101111110111110010100101010101100000010010010010100001010110111111110111010010111101010100111111110010011110100000010101111111110111000000100000010110111111110010111011111111110100111111110010101011100000010100111111110010101011100000010101100000001111101011111111110110100000000010101011100000001100101111111111111000101001110100101000000000001000001001000000111111111111011111111111111110010000010001010100101010010010001010100111010100101010010011111111100100010100101110010100101010111111110111100011110000000000101101"
 
 #if defined(PERFORMANCE_TEST)
-GPerformance pfMalloc = {0};
+GPerformance pfMem = {0};
 GPerformance pfTotal = {0};
 #endif
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     strcpy(inputs, C2);
     pfTotal.summary = 0;
     strcpy(pfTotal.name, "total");
-    strcpy(pfMalloc.name, "malloc");
+    strcpy(pfMem.name, "memory");
 #else
     gets(inputs);
 #endif
@@ -72,13 +72,13 @@ int main(int argc, char **argv)
 
             if ((!goal1) && GParallelSpace_TestGoal(&NextSpace, 0, 0))
             {
-                memcpy(&GoalSpace1, &NextSpace, sizeof(GParallelSpace));
+                mem_cpy(&GoalSpace1, &NextSpace, sizeof(GParallelSpace));
 				goal1 = true;
             }
 
             if ((!goal2) && GParallelSpace_TestGoal(&NextSpace, 0, 29))
             {
-                memcpy(&GoalSpace2, &NextSpace, sizeof(GParallelSpace));
+                mem_cpy(&GoalSpace2, &NextSpace, sizeof(GParallelSpace));
 				goal2 = true;
             }
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 
 	GPerformance_Pause(&pfTotal);
     GPerformance_Output(&pfTotal);
-    GPerformance_Output(&pfMalloc);
+    GPerformance_Output(&pfMem);
 	return 0;
 }
 

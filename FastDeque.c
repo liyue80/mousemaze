@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <string.h>
 #include "FastDeque.h"
+#include "Performance.h"
 
 static u32 GFastDeque_RoundPlusPlus(const GFastDeque * This, u32 value);
 
@@ -27,7 +28,7 @@ bool GFastDeque_PushBack(GFastDeque * This, const GParallelSpace * pValue)
         return false;
     }
 
-    memcpy(&This->nodes[This->tail], pValue, sizeof(GParallelSpace));
+    mem_cpy(&This->nodes[This->tail], pValue, sizeof(GParallelSpace));
     This->tail = nextTail;
 
     return true;
@@ -42,7 +43,7 @@ bool GFastDeque_PopFront(GFastDeque * This, GParallelSpace * pValue)
         return false;
 	}
 
-    memcpy(pValue, &This->nodes[This->head], sizeof(GParallelSpace));
+    mem_cpy(pValue, &This->nodes[This->head], sizeof(GParallelSpace));
     This->head = GFastDeque_RoundPlusPlus(This, This->head);
     return true;
 }
