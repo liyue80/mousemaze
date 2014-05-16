@@ -6,7 +6,6 @@
 #include "StandardSpace.h"
 #include "ParallelSpace.h"
 #include "FastDeque.h"
-#include "FixedMemPool.h"
 #include "Performance.h"
 
 /* **************************************
@@ -28,11 +27,13 @@ GPerformance pfTotal = {0};
 int main(int argc, char **argv)
 {
     char inputs[WIDTH * HEIGHT + 100];
-	GStandardSpace * pStandardSpace = NULL;
-	GParallelSpace * pSpace = NULL;
-	GFastDeque * pDeque = NULL;
-    GParallelSpace * pGoalSpace1 = NULL;
-    GParallelSpace * pGoalSpace2 = NULL;
+	GFastDeque dequeForSpaces;
+	GParallelSpace Space;
+	GStandardSpace StandardSpace;
+    GParallelSpace GoalSpace1;
+    GParallelSpace GoalSpace2;
+    bool goal1 = false;
+    bool goal2 = false;
 
 #if defined(PERFORMANCE_TEST)
     strcpy(inputs, C2);
@@ -45,60 +46,55 @@ int main(int argc, char **argv)
 
     GPerformance_Resume(&pfTotal);
 
-	pStandardSpace = GStandardSpace_Create(WIDTH, HEIGHT);
+	GStandardSpace_Initialize(&StandardSpace);
+    GParallelSpace_Initialize(&Space, &StandardSpace);
+    GParallelSpace_InitializeTable(&Space, inputs);
+    GParallelSpace_InitializeEntry(&Space, 29, 29);
 
-    pSpace = GParallelSpace_Create(pStandardSpace);
-    GParallelSpace_InitializeTable(pSpace, inputs);
-    GParallelSpace_InitializeEntry(pSpace, 29, 29);
-
-    pDeque = GFastDeque_Create();
-    GFastDeque_PushBack(pDeque, pSpace);
+	GFastDeque_Initialize(&dequeForSpaces);
+    GFastDeque_PushBack(&dequeForSpaces, &Space);
 
     // reuse pSpace in the while loop
-    while (!pGoalSpace1 || !pGoalSpace2)
+    while (!goal1 || !goal2)
     {
         Direction dir;
-        GParallelSpace * pParallel;
 
-		if (GFastDeque_IsEmpty(pDeque))
+        if (!GFastDeque_PopFront(&dequeForSpaces, &Space))
         {
             break;
         }
 
-        pSpace = (GParallelSpace*)GFastDeque_PopFront(pDeque);
-
-		for ( dir = UP; dir <= LEFT; dir++ )
+		for ( dir = LEFT; dir <= DOWN; dir++ )
         {
-            pParallel = GParallelSpace_Move(pSpace, dir);
-            if (pParallel == NULL)
+            GParallelSpace NextSpace;
+            if (!GParallelSpace_Move(&Space, dir, &NextSpace))
                 continue;
 
-            if ((pGoalSpace1 == NULL) && GParallelSpace_TestGoal(pParallel, 0, 0))
+            if ((!goal1) && GParallelSpace_TestGoal(&NextSpace, 0, 0))
             {
-                pGoalSpace1 = pParallel;
+                memcpy(&GoalSpace1, &NextSpace, sizeof(GParallelSpace));
+				goal1 = true;
             }
 
-            if ((pGoalSpace2 == NULL) && GParallelSpace_TestGoal(pParallel, 0, 29))
+            if ((!goal2) && GParallelSpace_TestGoal(&NextSpace, 0, 29))
             {
-                pGoalSpace2 = pParallel;
+                memcpy(&GoalSpace2, &NextSpace, sizeof(GParallelSpace));
+				goal2 = true;
             }
-            
+
 			//printf("(%d,%d)->(%d,%d) ", pSpace->currentPos.x, pSpace->currentPos.y, pParallel->currentPos.x, pParallel->currentPos.y);
-            GFastDeque_PushBack(pDeque, (void *)pParallel);
+            GFastDeque_PushBack(&dequeForSpaces, &NextSpace);
         }
-
-		if (pSpace != pGoalSpace1 && pSpace != pGoalSpace2)
-			GFastDeque_Destory(pSpace);
     }
 
 #ifndef PERFORMANCE_TEST
-    if (pGoalSpace1 != NULL)
-		printf("%s", GParallelSpace_Output(pGoalSpace1));
+    if (goal1)
+		printf("%s", GParallelSpace_Output(&GoalSpace1));
 	else
 		printf("0");
 
-    if (pGoalSpace2 != NULL)
-		printf("%s", GParallelSpace_Output(pGoalSpace2));
+    if (goal2)
+		printf("%s", GParallelSpace_Output(&GoalSpace2));
 	else
 		printf("0");
 #endif

@@ -5,164 +5,97 @@
 #include <assert.h>
 #include "ParallelSpace.h"
 
-/* Convert (x,y) to offset in _roadmap */
-static u32 GParallelSpace_Offset(const GParallelSpace * This, u32 x, u32 y);
-static Position GParallelSpace_Coords(const GParallelSpace * This, u32 offset);
-static GParallelSpace * GParallelSpace_Duplicate(const GParallelSpace * This);
-
-GParallelSpace * GParallelSpace_Create(GStandardSpace * pStandardSpace)
+void GParallelSpace_Initialize(GParallelSpace * This, GStandardSpace * pStandardSpace)
 {
-	u32 width = 0;
-	u32 height = 0;
-	GParallelSpace * ptr = NULL;
-
-	GStandardSpace_GetSpaceSize(pStandardSpace, &width, &height);
-
-	ptr = (GParallelSpace*)mem_alloc(sizeof(GParallelSpace) + width * height);
-
-	ptr->standardSpace = pStandardSpace;
-	ptr->roadmap = ptr->extData;
-	ptr->distance = 0;
-
-	return ptr;
-}
-
-void GFastDeque_Destory(GParallelSpace * This)
-{
-	mem_free(This);
+	memset(This, 0, sizeof(GParallelSpace));
+    This->standardSpace = pStandardSpace;
 }
 
 void GParallelSpace_InitializeTable(GParallelSpace * This, LPCSTR mapInitStr)
 {
-	u32 width = 0;
-	u32 height = 0;
-	u32 allocSize = 0;
-
-	GStandardSpace_GetSpaceSize(This->standardSpace, &width, &height);
-	allocSize = width * height;
-    memcpy(This->roadmap, mapInitStr, allocSize);
+	memcpy(This->roadmap, mapInitStr, WIDTH * HEIGHT);
 }
 
 void GParallelSpace_InitializeEntry(GParallelSpace * This, u32 x, u32 y)
 {
-    This->currentPos.x = x;
-    This->currentPos.y = y;
-	This->roadmap[GParallelSpace_Offset(This, This->currentPos.x, This->currentPos.y)] = '2';
+    This->x = x;
+    This->y = y;
+	This->roadmap[y][x] = '2';
 }
 
-GParallelSpace * GParallelSpace_Move(const GParallelSpace * This, Direction dir)
+bool GParallelSpace_Move(const GParallelSpace * This, Direction dir, GParallelSpace * pNextSpace)
 {
-	GParallelSpace * dupSpace;
-    Position test = This->currentPos;
-	u32 offset;
-	u32 width;
-	u32 height;
+	u32 xx, yy;
 
-	GStandardSpace_GetSpaceSize(This->standardSpace, &width, &height);
+	xx = This->x;
+	yy = This->y;
 
 	switch (dir)
     {
         case LEFT:
-            if (This->currentPos.x == 0)
-                return NULL;
-            test.x--;
+			if (xx == 0) return false;
+			xx--;
             break;
         case UP:
-            if (This->currentPos.y == 0)
-                return NULL;
-            test.y--;
+			if (yy == 0) return false;
+			yy--;
 			break;
         case RIGHT:
-            if (This->currentPos.x + 1 >= width)
-                return NULL;
-            test.x++;
+            if (xx + 1 >= WIDTH) return false;
+            xx++;
             break;
         case DOWN:
-            if (This->currentPos.y + 1 >= height)
-                return NULL;
-            test.y++;
+            if (yy + 1 >= HEIGHT) return false;
+            yy++;
             break;
-        default: assert(0);
+        default:
+			assert(0);
     }
 
-	offset = GParallelSpace_Offset(This, test.x, test.y);
-	if (This->roadmap[offset] != '1')
-        return NULL;
+	if (This->roadmap[yy][xx] != '1')
+        return false;
 
-	if (!GStandardSpace_SetDistance(This->standardSpace, test.x, test.y, This->distance+1))
-		return NULL;
+	if (!GStandardSpace_SetDistance(This->standardSpace, xx, yy, This->distance + 1))
+		return false;
 
-	dupSpace = GParallelSpace_Duplicate(This);
-	dupSpace->roadmap[offset] = '2';
-	dupSpace->currentPos = test;
-	dupSpace->distance ++;
-    return dupSpace;
+	memcpy(pNextSpace, This, sizeof(GParallelSpace));
+	pNextSpace->roadmap[yy][xx] = '2';
+	pNextSpace->x = xx;
+	pNextSpace->y = yy;
+	pNextSpace->distance++;
+    return true;
     
 }
 
 bool GParallelSpace_TestGoal(const GParallelSpace * This, u32 x, u32 y)
 {
-    return (This->currentPos.x == x) && (This->currentPos.y == y);
+    return (This->x == x) && (This->y == y);
 }
 
 LPCSTR GParallelSpace_Output(const GParallelSpace * This)
 {
 	static char staticstring[4096] = {0};
-	u32 width;
-	u32 height;
 #ifdef _DEBUG
 	u32 i = 0;
 	char * ptr = staticstring;
 #endif
 
-	GStandardSpace_GetSpaceSize(This->standardSpace, &width, &height);
-
 #ifdef _DEBUG
-	for (i=0; i<height; i++)
+	for (i = 0; i < HEIGHT; i++)
 	{
-		memcpy(ptr, &This->roadmap[GParallelSpace_Offset(This, 0, i)], width);
-		ptr += width;
+		memcpy(ptr, &This->roadmap[i][0], WIDTH);
+		ptr += WIDTH;
 		*ptr++ = 0x0D;
 		*ptr++ = 0x0A;
 	}
 
+	*ptr++ = 0x0D;
+	*ptr++ = 0x0A;
 	*ptr = '\0';
 #else
-	memcpy(staticstring, This->roadmap, width * height);
-	staticstring[width * height] = '\0';
+	memcpy(staticstring, This->roadmap, WIDTH * HEIGHT);
+	staticstring[WIDTH * HEIGHT] = '\0';
 #endif
 
 	return staticstring;
 }
-
-static u32 GParallelSpace_Offset(const GParallelSpace * This, u32 x, u32 y)
-{
-	u32 width, height;
-	GStandardSpace_GetSpaceSize(This->standardSpace, &width, &height);
-	return (width * y + x);
-}
-
-static GParallelSpace * GParallelSpace_Duplicate(const GParallelSpace * This)
-{
-	u32 width, height;
-	GParallelSpace * ptr = GParallelSpace_Create(This->standardSpace);
-	ptr->currentPos = This->currentPos;
-	ptr->distance = This->distance;
-	ptr->standardSpace = This->standardSpace;
-	GStandardSpace_GetSpaceSize(This->standardSpace, &width, &height);
-	memcpy(ptr->roadmap, This->roadmap, width * height);
-	return ptr;
-}
-
-#if 0
-static Position GParallelSpace_Coords(const GParallelSpace * This, u32 offset)
-{
-    Position pos;
-
-    pos.x = offset % This->mapSize.width;
-    pos.y = offset / This->mapSize.width;
-
-    return pos;
-}
-#endif
-

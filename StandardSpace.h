@@ -8,14 +8,10 @@
 
 typedef struct GStandardSpace_t
 {
-	Size mapSize;
-    u32 * distanceMap;
-	u32 extData[1];
+    u32 distanceMap[HEIGHT][WIDTH];
 } GStandardSpace;
 
-GStandardSpace * GStandardSpace_Create(u32 width, u32 height);
-
-void GStandardSpace_GetSpaceSize(const GStandardSpace * This, u32 * width, u32 * height);
+void GStandardSpace_Initialize(GStandardSpace * This);
 
 /*
  * 功能：  在位置(x,y)设置其距离入口的距离（步数）。

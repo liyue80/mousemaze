@@ -3,58 +3,55 @@
  */
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "FastDeque.h"
 
 static u32 GFastDeque_RoundPlusPlus(const GFastDeque * This, u32 value);
 
-GFastDeque * GFastDeque_Create(void)
+GFastDeque * GFastDeque_Initialize(GFastDeque * This)
 {
-    GFastDeque * fd = (GFastDeque*)mem_alloc(sizeof(GFastDeque));
-    fd->capacity = FAST_DEQUE_CAPACITY;
-    fd->head = 0;
-    fd->tail = 0;
-    return fd;
+    This->head = 0;
+    This->tail = 0;
+    return This;
 }
 
-void GFastDeque_PushBack(GFastDeque * This, void * data)
+bool GFastDeque_PushBack(GFastDeque * This, const GParallelSpace * pValue)
 {
     u32 nextTail = GFastDeque_RoundPlusPlus(This, This->tail);
-	//printf("%d %d", This->head, This->tail);
+
+    assert(pValue != NULL);
+
     if (nextTail == This->head) // array if full
     {
         assert(0);
-        return;
+        return false;
     }
 
-    This->elements[This->tail] = data;
+    memcpy(&This->nodes[This->tail], pValue, sizeof(GParallelSpace));
     This->tail = nextTail;
-	//printf(" => %d %d\n", This->head, This->tail);
-    return;
+
+    return true;
 }
 
-void * GFastDeque_PopFront(GFastDeque * This)
+bool GFastDeque_PopFront(GFastDeque * This, GParallelSpace * pValue)
 {
-	void * data;
+    assert(pValue != NULL);
 
     if (This->head == This->tail) // array is empty
 	{
-        return NULL;
+        return false;
 	}
 
-    data = This->elements[This->head];
+    memcpy(pValue, &This->nodes[This->head], sizeof(GParallelSpace));
     This->head = GFastDeque_RoundPlusPlus(This, This->head);
-    return data;
-}
-
-bool GFastDeque_IsEmpty(const GFastDeque * This)
-{
-    return (This->head == This->tail);
+    return true;
 }
 
 static u32 GFastDeque_RoundPlusPlus(const GFastDeque * This, u32 value)
 {
     value++;
-    if (value >= This->capacity)
+    if (value >= FAST_DEQUE_CAPACITY)
         return 0;
     return value;
 }
+

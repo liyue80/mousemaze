@@ -4,6 +4,10 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+/* GAME predefined */
+#define WIDTH  30
+#define HEIGHT 30
+
 #ifdef _MSC_VER
 	typedef int bool;
 	#define false 0
@@ -18,18 +22,6 @@ typedef unsigned int u32;
 typedef unsigned long long u64;
 typedef char * LPSTR;
 typedef const char * LPCSTR;
-
-typedef struct Position_t
-{
-    u32 x;
-    u32 y;
-} Position;
-
-typedef struct Size_t
-{
-    u32 width;
-    u32 height;
-} Size;
 
 void * mem_alloc(u32);
 void   mem_free(void *);

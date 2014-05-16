@@ -2,28 +2,27 @@
  * Implement a deque, which cannot modify its elements
  * except pushing to back and poping from front.
  */
-#include "common.h"
 
 #ifndef _FAST_DEQUE_H_
 #define _FAST_DEQUE_H_
 
-#define FAST_DEQUE_CAPACITY 10240
+#include "common.h"
+#include "ParallelSpace.h"
+
+#define FAST_DEQUE_CAPACITY (WIDTH + HEIGHT)
 
 typedef struct GFastDeque
 {
-    // Following members are private
-    u32 capacity;
     u32 head; // front
     u32 tail; // back
-    void * elements[FAST_DEQUE_CAPACITY];
+    GParallelSpace nodes[FAST_DEQUE_CAPACITY];
 } GFastDeque;
 
-GFastDeque * GFastDeque_Create(void);
+GFastDeque * GFastDeque_Initialize(GFastDeque * This);
 
-void GFastDeque_PushBack(GFastDeque * This, void * data);
+bool GFastDeque_PushBack(GFastDeque * This, const GParallelSpace * pValue);
 
-void * GFastDeque_PopFront(GFastDeque * This);
-
-bool GFastDeque_IsEmpty(const GFastDeque * This);
+bool GFastDeque_PopFront(GFastDeque * This, GParallelSpace * pValue);
 
 #endif
+
