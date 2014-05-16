@@ -83,7 +83,9 @@ void output(ulong offset)
 {
 	if (nodes[offset].distance == (ulong)-1)
 	{
+#if !PERFORMANCE_TEST
 		printf("0");
+#endif
 	}
     else
     {
@@ -127,12 +129,21 @@ void output(ulong offset)
 #define check_point
 #endif
 
-int main()
+int main(int argc, char **argv)
 {
 	init_cp;
 
 #if PERFORMANCE_TEST
-	strcpy((char*)input, C2);
+    if (argc > 1)
+        switch ( *argv[1] )
+        {
+            case '1': strcpy((char*)input, C1); break;
+            case '2': strcpy((char*)input, C2); break;
+            case '3': strcpy((char*)input, C3); break;
+            default:  strcpy((char*)input, C1); break;
+        }
+    else
+        strcpy((char*)input, C1);
 #else
 	gets((char*)input);
 #endif
