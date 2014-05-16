@@ -33,7 +33,7 @@ typedef struct node_t
 char   input[WIDTH*HEIGHT+2];
 node_t nodes[WIDTH*HEIGHT];
 
-#define PERFORMANCE_TEST 0
+#define PERFORMANCE_TEST 1
 
 #if PERFORMANCE_TEST
 static __inline ulonglong read_counter()
@@ -50,21 +50,58 @@ static __inline ulonglong read_counter()
 }
 #endif
 
-void move(ulong offset, ulong distance, long direct)
+void move(char *input_xy, node_t *node_xy, ulong distance, long direct)
 {
-    if (input[offset] == '1' && nodes[offset].distance > distance)
+    ulong offset = (ulong)(input_xy - &input[0]);
+    ulong x = offset % WIDTH;
+
+    if (*input_xy == '1' && node_xy->distance > distance)
     {
-        ulong x = offset % WIDTH;
-        nodes[offset].distance = distance;
-        nodes[offset].direct   = -direct;
+        node_xy->direct = -direct;
+        node_xy->distance = distance;
 
-        distance++;
-
-        if (x!=0)           move(offset-1,     distance, LEFT);
-        if (offset>=WIDTH)  move(offset-WIDTH, distance, UP);
-        if (x<WIDTH-1)      move(offset+1,     distance, RIGHT);
-        if (offset<=869)    move(offset+WIDTH, distance, DOWN);
+        if (x!=0) move(input_xy-1, node_xy-1, distance+1, LEFT);
+        if (offset>=WIDTH) move(input_xy-WIDTH, node_xy-WIDTH, distance+1, UP);
+        if (x!=WIDTH-1) move(input_xy+1, node_xy+1, distance+1, RIGHT);
+        if (offset<870) move(input_xy+WIDTH, node_xy+WIDTH, distance+1, DOWN);
     }
+
+#if 0
+    switch (direct)
+    {
+        case LEFT:
+            if (x==0) return;
+            input_xy--;
+            node_xy--;
+            break;
+        case UP:
+            if (offset<WIDTH) return;
+            input_xy -= WIDTH;
+            node_xy -= WIDTH;
+            break;
+        case RIGHT:
+            if (x==WIDTH-1) return;
+            input_xy++;
+            node_xy++;
+            break;
+        case DOWN:
+            if (offset>869) return;
+            input_xy += WIDTH;
+            node_xy += WIDTH;
+            break;
+    }
+
+    if (*input_xy != '1' || node_xy->distance <= distance)
+        return;
+
+    node_xy->direct   = -direct;
+    node_xy->distance = distance;
+
+    move(input_xy, node_xy, LEFT);
+    move(input_xy, node_xy, UP);
+    move(input_xy, node_xy, RIGHT);
+    move(input_xy, node_xy, DOWN);
+#endif
 }
 
 void draw(const char *map)
@@ -146,10 +183,12 @@ int main()
     input[899] = '2';
     nodes[899].distance = 0;
 
-    check_point;
+    //check_point;
 
-    move(898, 1, LEFT);
-    move(869, 1, UP);
+    move(&input[898], &nodes[898], 1, LEFT);
+    move(&input[869], &nodes[869], 1, UP);
+    //move(898, 1, LEFT);
+    //move(869, 1, UP);
 
     check_point;
 
