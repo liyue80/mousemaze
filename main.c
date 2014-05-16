@@ -6,9 +6,8 @@
 #endif
 #include <stdio.h>
 #include <string.h>
-/* **************************************
-* Main function and global variables.
-************************************** */
+
+/* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
 #define HEIGHT 30
 
@@ -17,59 +16,60 @@
 #define C2 "111110000000000000000000000011110010111111111110111111110100110010100000010000100000010010110011111100010000100111110010110010100101111110100000010010110110100101111110111111111110111010100101111110100000010010110010100101111110101111110010110010100101111110100000010010110110100101111110111111010110111010100101111110100000010010110010110111111111100000010010110010101001010100101111110110110010100101010101100000010010010010100001010110111111110110010010111101010100111111110010011110100000010101111111110110000000100000000110111111110010111011111111110100111111110010101011100000000100111111110010101011100000000101100000001110101011111111110110100000000010101011100000001100101111111110111000101001000100100000000000001000101001000000111111111111011111111111111110010000010001010100101010010010001010100111010100101010010011111111100100010100101110010100101010111111110111100011110000000000000001"
 #define C3 "111110000100010010101001000011110010111111111110111111110100110010100000010000100000010011110011111100010000101111110010110010100101111110100000010010110110100101111110111111111111111010100101111110100000010010110010100101111110101111110010110010100101111110100000010010110110100101111110111111010111111010100101111110100000010010110010110111111111100000010010110010101001010100101111110111110010100101010101100000010010010010100001010110111111110111010010111101010100111111110010011110100000010101111111110111000000100000010110111111110010111011111111110100111111110010101011100000010100111111110010101011100000010101100000001111101011111111110110100000000010101011100000001100101111111111111000101001110100101000000000001000001001000000111111111111011111111111111110010000010001010100101010010010001010100111010100101010010011111111100100010100101110010100101010111111110111100011110000000000101101"
 
-typedef int sauto;
-typedef unsigned int  uauto;
-typedef unsigned int  u32;
-typedef unsigned long long u64;
+typedef unsigned long ulong;
+typedef unsigned long long ulonglong;
 
 #define LEFT  -2
 #define UP    -1
 #define DOWN   1
 #define RIGHT  2
 
-char  map_data[HEIGHT+1][WIDTH];
-uauto map_distance[HEIGHT][WIDTH];
-sauto map_direct[HEIGHT][WIDTH];
+typedef struct node_t
+{
+    ulong distance;
+    long  direct;
+} node_t;
+
+char   input[WIDTH*HEIGHT+2];
+node_t nodes[WIDTH*HEIGHT];
 
 #define PERFORMANCE_TEST 0
 
 #if PERFORMANCE_TEST
-static __inline u64 read_counter()
+static __inline ulonglong read_counter()
 {
-    u64 ts;
+    ulonglong ts;
 #if defined(_MSC_VER)
     QueryPerformanceCounter((LARGE_INTEGER*)&ts);
 #else
-    u32 ts1, ts2;
+    ulong ts1, ts2;
     __asm__ __volatile__("rdtsc\n\t":"=a"(ts1), "=d"(ts2));
-    ts = ((u64) ts2 << 32) | ((u64) ts1);
+    ts = ((ulonglong) ts2 << 32) | ((ulonglong) ts1);
 #endif
     return ts;
 }
 #endif
 
-void move(uauto x, uauto y, uauto distance, sauto direct)
+void move(ulong offset, ulong distance, long direct)
 {
-    const u32 offset = (y<<5) - (y<<1) + x;// y*WIDTH+x;
-    char * map_data_xy = ((char*)map_data) + offset;
-    uauto * map_distance_xy = ((uauto*)map_distance) + offset;
-    sauto * map_direct_xy = ((sauto*)map_direct) + offset;
-
-    if ( (*map_data_xy) == '1' && (*map_distance_xy) > distance)
+    if (input[offset] == '1' && nodes[offset].distance > distance)
     {
-        (*map_distance_xy) = distance;
-        (*map_direct_xy) = -direct;
+        ulong x = offset % WIDTH;
+        nodes[offset].distance = distance;
+        nodes[offset].direct   = -direct;
 
-        if (x>0) move(x-1, y, distance+1, LEFT);
-        if (y>0) move(x, y-1, distance+1, UP);
-        if (x<WIDTH-1) move(x+1, y, distance+1, RIGHT);
-        if (y<HEIGHT-1) move(x, y+1, distance+1, DOWN);
+        distance++;
+
+        if (x!=0)           move(offset-1,     distance, LEFT);
+        if (offset>=WIDTH)  move(offset-WIDTH, distance, UP);
+        if (x<WIDTH-1)      move(offset+1,     distance, RIGHT);
+        if (offset<=869)    move(offset+WIDTH, distance, DOWN);
     }
 }
 
 void draw(const char *map)
 {
-	int i, j;
+	ulong i, j;
 	for (i=0; i<HEIGHT; i++)
 	{
 		for(j=0; j<WIDTH; j++)
@@ -79,27 +79,32 @@ void draw(const char *map)
 	printf("\n");
 }
 
-void output(uauto x, uauto y)
+void output(ulong offset)
 {
-	if (map_distance[y][x] == (uauto)-1)
+	if (nodes[offset].distance == (ulong)-1)
 	{
 		printf("0");
 	}
     else
     {
-        char map[HEIGHT+1][WIDTH];
-        memcpy((void*)map, (const void*)map_data, sizeof(char)*WIDTH*HEIGHT);
-        map[y][x] = '2';
+        char map[WIDTH*HEIGHT+2];
+        memcpy((void*)map, (const void*)input, sizeof(map));
+        map[offset] = '2';
 
         do
 		{
-			if (map_direct[y][x] == RIGHT) x++;
-            else if (map_direct[y][x] == DOWN) y++;
-            else if (map_direct[y][x] == UP) y--;
-            else x--;
-			map[y][x] = '2';
-		} while(map_distance[y][x] != 0);
-        map[HEIGHT][0] = 0;
+            switch (nodes[offset].direct)
+            {
+                case RIGHT: offset++; break;
+                case DOWN : offset+=WIDTH; break;
+                case UP   : offset-=WIDTH; break;
+                default   : offset--;
+            }
+            map[offset] = '2';
+		} while(nodes[offset].distance != 0);
+
+        map[900] = 0;
+
 #if 1
 #if !PERFORMANCE_TEST
 		printf((const char*)map);
@@ -112,7 +117,7 @@ void output(uauto x, uauto y)
 
 #if PERFORMANCE_TEST
 #define init_cp                                 \
-    u64 tick = 0
+    ulonglong tick = 0
     
 #define check_point                             \
     printf(" : %lld\n", read_counter() - tick); \
@@ -127,29 +132,29 @@ int main()
 	init_cp;
 
 #if PERFORMANCE_TEST
-	strcpy((char*)map_data, C2);
+	strcpy((char*)input, C2);
 #else
-	gets((char*)map_data);
+	gets((char*)input);
 #endif
 
     check_point;
 
-	memset((void*)map_distance, 0xff, sizeof(map_distance));
+    memset((void*)nodes, 0xff, sizeof(nodes));
 
     check_point;
 
-    map_data[29][29] = '2';
-    map_distance[29][29] = 0;
+    input[899] = '2';
+    nodes[899].distance = 0;
 
     check_point;
 
-    move(28, 29, 1, LEFT);
-    move(29, 28, 1, UP);
+    move(898, 1, LEFT);
+    move(869, 1, UP);
 
     check_point;
 
-    output(0, 0);
-    output(0, 29);
+    output(0);
+    output(870);
 
     check_point;
 
