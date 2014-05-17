@@ -6,9 +6,10 @@ ifeq ($(DEBUG),YES)
 	LDFLAGS = -g
 else
 	OBJS = main.o
-	CFLAGS = -O2 -minline-all-stringops
+	CFLAGS = -O3
+	#-minline-all-stringops
 	#-pipe -mmmx -msse3 
-	LDFLAGS = -Wl,-O2 -Wl,--as-needed -s
+	LDFLAGS = -Wl,-O3 -Wl,--as-needed -s
 endif
 
 all: $(OBJS)
