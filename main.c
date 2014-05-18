@@ -56,12 +56,12 @@ static __inline ulonglong read_counter()
 
 void move(ulong offset, ulong distance, long direct)
 {
-    if (input[offset] == '1' && nodes[offset].distance > distance)
+	node_t *pnode = &nodes[offset];
+	if (input[offset] == '1' && pnode->distance > distance)
     {
         ulong x = offset % WIDTH;
-        nodes[offset].distance = distance;
-        nodes[offset].direct   = -direct;
-
+		pnode->direct = -direct;
+        pnode->distance = distance;
         distance++;
 
         if (x!=0)           move(offset-1,     distance, LEFT);
@@ -136,7 +136,7 @@ void output(ulong offset)
 // 统计地图中'1'的个数
 int onecount()
 {
-    const char * p = (char *)input;
+    char * p = (char *)input;
 	int a = strlen(input);
     ulong count = 0;
     do
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
             default:  strcpy((char*)input, C1); break;
         }
     else
-        strcpy((char*)input, C1);
+        strcpy((char*)input, C2);
 #else
 	gets((char*)input);
 #endif
