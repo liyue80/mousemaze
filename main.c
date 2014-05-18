@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define PERFORMANCE_TEST 1    // 开启性能测试模式  默认值：0
+#define PERFORMANCE_TEST 0    // 开启性能测试模式  默认值：0
 #define FRIENDLY_OUTPUT  0    // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
@@ -66,7 +66,12 @@ void move(ulong offset, ulong distance, long direct)
 		pnode->direct = -direct;
 		pnode->distance = distance;
 		distance++;
-
+#if 0
+		if (x!=0)          move(offset-1,     distance, LEFT);
+		if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
+		if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
+		if (offset<=869)   move(offset+WIDTH, distance, DOWN);
+#else
 		switch(direct)
 		{
 		case LEFT:
@@ -90,6 +95,7 @@ void move(ulong offset, ulong distance, long direct)
 			if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
 			break;
 		}
+#endif
     }
 }
 
