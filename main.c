@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define PERFORMANCE_TEST 0    // 开启性能测试模式  默认值：0
+#define PERFORMANCE_TEST 1    // 开启性能测试模式  默认值：0
 #define FRIENDLY_OUTPUT  0    // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
@@ -56,18 +56,40 @@ static __inline ulonglong read_counter()
 
 void move(ulong offset, ulong distance, long direct)
 {
+	//static long c = 0;
 	node_t *pnode = &nodes[offset];
-	if (input[offset] == '1' && pnode->distance > distance)
-    {
-        ulong x = offset % WIDTH;
-		pnode->direct = -direct;
-        pnode->distance = distance;
-        distance++;
+	//printf("%d ", c++);
 
-        if (x!=0)           move(offset-1,     distance, LEFT);
-        if (offset>=WIDTH)  move(offset-WIDTH, distance, UP);
-        if (x<WIDTH-1)      move(offset+1,     distance, RIGHT);
-        if (offset<=869)    move(offset+WIDTH, distance, DOWN);
+	if (input[offset] == '1' && pnode->distance > distance)
+	{
+		ulong x = offset % WIDTH;
+		pnode->direct = -direct;
+		pnode->distance = distance;
+		distance++;
+
+		switch(direct)
+		{
+		case LEFT:
+			if (x!=0)          move(offset-1,     distance, LEFT);
+			if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
+			if (offset<=869)   move(offset+WIDTH, distance, DOWN);
+			break;
+		case UP:
+			if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
+			if (x!=0)          move(offset-1,     distance, LEFT);
+			if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
+			break;
+		case RIGHT:
+			if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
+			if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
+			if (offset<=869)   move(offset+WIDTH, distance, DOWN);
+			break;
+		case DOWN:
+			if (offset<=869)   move(offset+WIDTH, distance, DOWN);
+			if (x!=0)          move(offset-1,     distance, LEFT);
+			if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
+			break;
+		}
     }
 }
 
