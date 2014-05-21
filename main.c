@@ -99,6 +99,7 @@ void move(ulong offset, ulong distance, long direct)
     }
 }
 
+#if FRIENDLY_OUTPUT
 void draw(const char *map)
 {
 	ulong i, j;
@@ -110,6 +111,7 @@ void draw(const char *map)
 	}
 	printf("\n");
 }
+#endif
 
 // 根据nodes中填写完成的内容，在30x30大小的map中绘制输出的最终结果。
 // 返回值：
@@ -148,7 +150,7 @@ int build(char *map, ulong entry)
 #define check_point
 #endif
 
-// 统计地图中'1'的个数
+// 统计输入中'1'的个数
 int onecount()
 {
     char * p = input;
@@ -162,7 +164,7 @@ int onecount()
     return count;
 }
 
-// 被death()调用，递归扩展'0'，直到遇到底边界时返回1，或者遇到其它边界时返回0.
+// 被death()调用，递归扩展'0'，直到遇到底边界时返回1，表明起点和终点之间被'0'阻隔，无法通过；或者遇到其它边界时返回0。
 int spread(ulong offset)
 {
     if (offset > 898)
@@ -180,7 +182,7 @@ int spread(ulong offset)
     return 0;
 }
 
-// 判断地图是否是死图，即无路径连接出口和入口。
+// 判断出口入口间是否有通路。
 int death()
 {
 	ulong offsets[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,59,89,119,149,179,209,239,269,299,329,359,389,419,449,479,509,539,569,599,629,659,689,719,749,779,809,839,869,0};
