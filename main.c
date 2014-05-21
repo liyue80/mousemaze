@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TEST_IN_CPE		1	// 开启性能测试模式  默认值：0
+#define TEST_IN_CPE		0	// 开启性能测试模式  默认值：0
 #define FRIENDLY_OUTPUT 0   // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
@@ -35,7 +35,7 @@ typedef struct node_t
     long  direct;
 } node_t;
 
-char   input[WIDTH*HEIGHT+2];
+char   input[WIDTH*HEIGHT*2+4];  // larger than the map, in order to contain the full output string.
 char   deathmap[WIDTH*HEIGHT+2];
 node_t nodes[WIDTH*HEIGHT];
 
@@ -111,39 +111,29 @@ void draw(const char *map)
 	printf("\n");
 }
 
-void output(ulong offset)
+// 根据nodes中填写完成的内容，在30x30大小的map中绘制输出的最终结果。
+// 返回值：
+// 如果是没有通路，返回零值，且map中的内容只有一个字符'0'（不是字符串，无null终结符）
+int build(char *map, ulong entry)
 {
-	if (nodes[offset].distance == (ulong)-1)
+	if (nodes[entry].distance == -1)
 	{
-		printf("0");
+		map[0] = '0';
+		return 0;
 	}
-    else
-    {
-        char map[WIDTH*HEIGHT+2];
-        memcpy((void*)map, (const void*)input, sizeof(map));
-        map[offset] = '2';
 
-        do
+	while (nodes[entry].distance != 0)
+	{
+		map[entry] = '2';
+		switch (nodes[entry].direct)
 		{
-            switch (nodes[offset].direct)
-            {
-                case RIGHT: offset++; break;
-                case DOWN : offset+=WIDTH; break;
-                case UP   : offset-=WIDTH; break;
-                default   : offset--;
-            }
-            map[offset] = '2';
-		} while(nodes[offset].distance != 0);
-
-        map[900] = 0;
-
-#if !FRIENDLY_OUTPUT
-		//puts(map);
-		printf(map);
-#else
-		draw(map);
-#endif
-    }
+		case RIGHT: entry++; break;
+		case DOWN : entry+=WIDTH; break;
+		case UP   : entry-=WIDTH; break;
+		default   : entry--;
+		}
+	}
+	return 1;
 }
 
 #if TEST_IN_CPE
@@ -161,7 +151,7 @@ void output(ulong offset)
 // 统计地图中'1'的个数
 int onecount()
 {
-    char * p = (char *)input;
+    char * p = input;
 	int a = strlen(input);
     ulong count = 0;
     do
@@ -196,7 +186,7 @@ int death()
 	ulong offsets[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,59,89,119,149,179,209,239,269,299,329,359,389,419,449,479,509,539,569,599,629,659,689,719,749,779,809,839,869,0};
     ulong *p;
 
-	memcpy((void*)deathmap, (const void*)input, sizeof(deathmap));
+	memcpy(deathmap, input, sizeof(deathmap));
 
     for (p = offsets; *p != 0; p++)
 	{
@@ -260,8 +250,37 @@ int main(int argc, char **argv)
 
     check_point;
 
-    output(0);
-    output(870);
+	// 填写输出字符串并显示之。
+	do
+	{
+		int outlen = 0;
+		memcpy(&input[900], input, 900);
+		if (build(input, 0))
+		{
+			outlen+=900;
+			if (build(&input[900], 870))
+				outlen+=900;
+			else
+				outlen++;
+		}
+		else
+		{
+			outlen++;
+			memcpy(&input[1], &input[900], 900);
+			if(build(&input[1], 870))
+				outlen+=900;
+			else
+				outlen++;
+		}
+		input[outlen]=0;
+
+#if !FRIENDLY_OUTPUT
+		puts(input);
+#else
+		draw(input);
+		draw(&input[900]);
+#endif
+	} while(0);
 
     check_point;
 
