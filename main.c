@@ -8,8 +8,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define PERFORMANCE_TEST 0    // 开启性能测试模式  默认值：0
-#define FRIENDLY_OUTPUT  0    // 使用友好的输出 默认值：0
+#define TEST_IN_CPE		1	// 开启性能测试模式  默认值：0
+#define FRIENDLY_OUTPUT 0   // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
@@ -39,7 +39,7 @@ char   input[WIDTH*HEIGHT+2];
 char   deathmap[WIDTH*HEIGHT+2];
 node_t nodes[WIDTH*HEIGHT];
 
-#if PERFORMANCE_TEST
+#if TEST_IN_CPE
 static __inline ulonglong read_counter()
 {
     ulonglong ts;
@@ -115,9 +115,7 @@ void output(ulong offset)
 {
 	if (nodes[offset].distance == (ulong)-1)
 	{
-#if !PERFORMANCE_TEST
 		printf("0");
-#endif
 	}
     else
     {
@@ -140,21 +138,20 @@ void output(ulong offset)
         map[900] = 0;
 
 #if !FRIENDLY_OUTPUT
-#if !PERFORMANCE_TEST
-		printf((const char*)map);
-#endif
+		//puts(map);
+		printf(map);
 #else
-		draw((const char*)map);
+		draw(map);
 #endif
     }
 }
 
-#if PERFORMANCE_TEST
+#if TEST_IN_CPE
 #define init_cp                                 \
     ulonglong tick = 0
     
 #define check_point                             \
-    printf(" : %lld\n", read_counter() - tick); \
+    fprintf(stderr, " : %lld\n", read_counter() - tick); \
     tick = read_counter()
 #else
 #define init_cp
@@ -219,7 +216,9 @@ int main(int argc, char **argv)
 {
 	init_cp;
 
-#if PERFORMANCE_TEST
+    check_point;
+
+#if 0
     if (argc > 1)
         switch ( *argv[1] )
         {
@@ -231,18 +230,16 @@ int main(int argc, char **argv)
     else
         strcpy((char*)input, C2);
 #else
-	gets((char*)input);
+	gets(input);
 #endif
-    
+
     check_point;
 	if (onecount() > 600)
 	{
 		if (death())
 		{
             check_point;
-#if !PERFORMANCE_TEST
 			printf("00");
-#endif
 			exit(0);
 		}
 	}
