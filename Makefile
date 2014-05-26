@@ -1,4 +1,5 @@
 OUTPUT = main.exe
+CC = gcc
 
 ifeq ($(DEBUG),YES)
 	OBJS = main.o
