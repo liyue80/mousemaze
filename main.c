@@ -50,7 +50,7 @@ typedef struct node_t
 } node_t;
 
 char   input[WIDTH*HEIGHT*2+4];  // larger than the map, in order to contain the full output string.
-char   deathmap[WIDTH*HEIGHT+2];
+char   deathmap[WIDTH*(HEIGHT+2)];
 node_t nodes[WIDTH*HEIGHT] = {0};
 int    fake_stack[WIDTH*HEIGHT];
 int   *pfsHead, *pfsTail;
