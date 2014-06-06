@@ -9,8 +9,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TEST_IN_CPE		0	// 开启性能测试模式  默认值：0
-#define FRIENDLY_OUTPUT 0   // 使用友好的输出 默认值：0
+#define TEST_IN_CPE		1	// 开启性能测试模式  默认值：0
+#define FRIENDLY_OUTPUT 1   // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
@@ -30,15 +30,22 @@ typedef unsigned long long ulonglong;
 #define DOWN   1
 #define RIGHT  2
 
+#define EDGE_LEFT(x) ((x)%30==0)
+#define EDGE_TOP(x)  ((x)<WIDTH)
+#define EDGE_RIGHT(x) ((x)%30==29)
+#define EDGE_BOTTOM(x) ((x)>=870)
+
 typedef struct node_t
 {
-    ulong distance;
+    long  distance;
     long  direct;
 } node_t;
 
 char   input[WIDTH*HEIGHT*2+4];  // larger than the map, in order to contain the full output string.
 char   deathmap[WIDTH*HEIGHT+2];
-node_t nodes[WIDTH*HEIGHT];
+node_t nodes[WIDTH*HEIGHT] = {0};
+int    fake_stack[WIDTH*HEIGHT];
+int   *pfsHead, *pfsTail;
 
 #if TEST_IN_CPE
 static __inline ulonglong read_counter()
@@ -54,51 +61,6 @@ static __inline ulonglong read_counter()
     return ts;
 }
 #endif
-
-void move(ulong offset, ulong distance, long direct)
-{
-	//static long c = 0;
-	node_t *pnode = &nodes[offset];
-	//printf("%d ", c++);
-
-	if (input[offset] == '1' && pnode->distance > distance)
-	{
-		ulong x = offset % WIDTH;
-		pnode->direct = -direct;
-		pnode->distance = distance;
-		distance++;
-#if 0
-		if (x!=0)          move(offset-1,     distance, LEFT);
-		if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
-		if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
-		if (offset<=869)   move(offset+WIDTH, distance, DOWN);
-#else
-		switch(direct)
-		{
-		case LEFT:
-			if (x!=0)          move(offset-1,     distance, LEFT);
-			if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
-			if (offset<=869)   move(offset+WIDTH, distance, DOWN);
-			break;
-		case UP:
-			if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
-			if (x!=0)          move(offset-1,     distance, LEFT);
-			if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
-			break;
-		case RIGHT:
-			if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
-			if (offset>=WIDTH) move(offset-WIDTH, distance, UP);
-			if (offset<=869)   move(offset+WIDTH, distance, DOWN);
-			break;
-		case DOWN:
-			if (offset<=869)   move(offset+WIDTH, distance, DOWN);
-			if (x!=0)          move(offset-1,     distance, LEFT);
-			if (x<WIDTH-1)     move(offset+1,     distance, RIGHT);
-			break;
-		}
-#endif
-    }
-}
 
 #if FRIENDLY_OUTPUT
 void draw(const char *map)
@@ -144,7 +106,7 @@ int build(char *map, ulong entry)
     ulonglong tick = 0
     
 #define check_point                             \
-    fprintf(stderr, " : %lld\n", read_counter() - tick); \
+    fprintf(stderr, "#%d : %lld\n", __LINE__, read_counter() - tick); \
     tick = read_counter()
 #else
 #define init_cp
@@ -207,11 +169,12 @@ int death()
 
 int main(int argc, char **argv)
 {
+	int i = 0;
 	init_cp;
 
     check_point;
 
-#if 0
+#if FRIENDLY_OUTPUT
     if (argc > 1)
         switch ( *argv[1] )
         {
@@ -239,17 +202,57 @@ int main(int argc, char **argv)
 
     check_point;
 
-    memset((void*)nodes, 0xff, sizeof(nodes));
+    nodes[899].distance = -2000;
+    pfsTail = pfsHead = fake_stack;
+    *pfsHead++ = 899;
 
     check_point;
+    while (pfsHead != pfsTail)
+    {
+		printf("%d %d\n", i++, *pfsTail);
+		if (*pfsTail == 0 || *pfsTail == 870) {
+			pfsTail++;
+			continue;
+		}
 
-    input[899] = '2';
-    nodes[899].distance = 0;
+        if (!EDGE_LEFT((*pfsTail))) {
+            *pfsHead = ((*pfsTail)-1);
+            if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
+                nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
+                nodes[*pfsHead].direct   = RIGHT;
+                pfsHead++;
+            }
+        }
 
-    check_point;
-
-    move(898, 1, LEFT);
-    move(869, 1, UP);
+        if (!EDGE_TOP((*pfsTail))) {
+            *pfsHead = ((*pfsTail)-WIDTH);
+            if ( (input[*pfsHead] == '1') && (nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) ) {
+                nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
+                nodes[*pfsHead].direct   = DOWN;
+                pfsHead++;
+            }
+        }
+        
+        if (!EDGE_RIGHT((*pfsTail))) {
+            *pfsHead = ((*pfsTail)+1);
+            if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
+                nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
+                nodes[*pfsHead].direct   = LEFT;
+                pfsHead++;
+            }
+        }
+        
+        if (!EDGE_BOTTOM((*pfsTail))) {
+            *pfsHead = ((*pfsTail)+WIDTH);
+            if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
+                nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
+                nodes[*pfsHead].direct   = UP;
+                pfsHead++;
+            }
+        }
+        
+        pfsTail++;
+    }
 
     check_point;
 
