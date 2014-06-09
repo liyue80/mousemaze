@@ -1,11 +1,43 @@
 #define MAP_SIZE 30
 #include <stdio.h>
+typedef unsigned long ulong;
+typedef unsigned long long ulonglong;
+
 struct node
 {
 	unsigned char path;
 	unsigned short distance;
 	struct node *from;
 } map[MAP_SIZE + 2][MAP_SIZE + 2] = {0};
+
+#define TEST_IN_CPE		1	// 开启性能测试模式  默认值：0
+
+#if TEST_IN_CPE
+static __inline ulonglong read_counter()
+{
+    ulonglong ts;
+#if defined(_MSC_VER)
+    QueryPerformanceCounter((LARGE_INTEGER*)&ts);
+#else
+    ulong ts1, ts2;
+    __asm__ __volatile__("rdtsc\n\t":"=a"(ts1), "=d"(ts2));
+    ts = ((ulonglong) ts2 << 32) | ((ulonglong) ts1);
+#endif
+    return ts;
+}
+#endif
+
+#if TEST_IN_CPE
+#define init_cp                                 \
+    ulonglong tick = 0
+    
+#define check_point                             \
+    fprintf(stderr, "#%d : %lld\n", __LINE__, read_counter() - tick); \
+    tick = read_counter()
+#else
+#define init_cp
+#define check_point
+#endif
 
 walk(unsigned char x, unsigned char y, struct node *from, unsigned char init)
 {
@@ -69,15 +101,27 @@ main()
 	unsigned short i, j, k = 0;
 	unsigned char input[MAP_SIZE * MAP_SIZE + 4] = {0};
 
+	init_cp;
+	check_point;
+
 	gets(input);
+
+	check_point;
+
 	for(i = 1; i <= MAP_SIZE; i ++)
 		for(j = 1; j <= MAP_SIZE; j ++)
 			map[i][j].path = input[k ++] - '0';
 
+	check_point;
+
 	if(map[30][30].path)
 		walk(30, 30, &map[30][31], 1);
+
+	check_point;
 
 	output(1, 1);
 	mark_path(&map[1][1], 1);
 	output(30, 1);
+
+	check_point;
 }
