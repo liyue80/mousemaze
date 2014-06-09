@@ -29,14 +29,19 @@ static __inline ulonglong read_counter()
 
 #if TEST_IN_CPE
 #define init_cp                                 \
-    ulonglong tick = 0
+    ulonglong tick = read_counter();            \
+    ulonglong tick_a = tick;
     
 #define check_point                             \
     fprintf(stderr, "#%d : %lld\n", __LINE__, read_counter() - tick); \
     tick = read_counter()
+
+#define final_cp								\
+	fprintf(stderr, "Final : %lld\n", read_counter() - tick_a);
 #else
 #define init_cp
 #define check_point
+#define final_cp
 #endif
 
 walk(unsigned char x, unsigned char y, struct node *from, unsigned char init)
@@ -124,4 +129,5 @@ main()
 	output(30, 1);
 
 	check_point;
+	final_cp;
 }

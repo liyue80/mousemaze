@@ -3,6 +3,7 @@
  */
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
+#define inline
 #include <Windows.h>
 #endif
 
@@ -10,31 +11,33 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TEST_IN_CPE		1	// 开启性能测试模式  默认值：0
+#define TEST_IN_CPE		0	// 开启性能测试模式  默认值：0
 #define FRIENDLY_OUTPUT 0   // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
 #define HEIGHT 30
 
+#if FRIENDLY_OUTPUT
 /* 已知的3个测试用例 */
 #define C1 "111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111111111111111101111111111111111"
 #define C2 "111110000000000000000000000011110010111111111110111111110100110010100000010000100000010010110011111100010000100111110010110010100101111110100000010010110110100101111110111111111110111010100101111110100000010010110010100101111110101111110010110010100101111110100000010010110110100101111110111111010110111010100101111110100000010010110010110111111111100000010010110010101001010100101111110110110010100101010101100000010010010010100001010110111111110110010010111101010100111111110010011110100000010101111111110110000000100000000110111111110010111011111111110100111111110010101011100000000100111111110010101011100000000101100000001110101011111111110110100000000010101011100000001100101111111110111000101001000100100000000000001000101001000000111111111111011111111111111110010000010001010100101010010010001010100111010100101010010011111111100100010100101110010100101010111111110111100011110000000000000001"
 #define C3 "111110000100010010101001000011110010111111111110111111110100110010100000010000100000010011110011111100010000101111110010110010100101111110100000010010110110100101111110111111111111111010100101111110100000010010110010100101111110101111110010110010100101111110100000010010110110100101111110111111010111111010100101111110100000010010110010110111111111100000010010110010101001010100101111110111110010100101010101100000010010010010100001010110111111110111010010111101010100111111110010011110100000010101111111110111000000100000010110111111110010111011111111110100111111110010101011100000010100111111110010101011100000010101100000001111101011111111110110100000000010101011100000001100101111111111111000101001110100101000000000001000001001000000111111111111011111111111111110010000010001010100101010010010001010100111010100101010010011111111100100010100101110010100101010111111110111100011110000000000101101"
+#endif
 
 typedef unsigned long ulong;
 typedef unsigned long long ulonglong;
 
 // 互为相反数，可简化代码
-#define LEFT  -2
-#define UP    -1
-#define DOWN   1
-#define RIGHT  2
+#define LEFT  -1
+#define UP    -30
+#define DOWN   30
+#define RIGHT  1
 
-#define EDGE_LEFT(x) ((x)%30==0)
-#define EDGE_TOP(x)  ((x)<WIDTH)
-#define EDGE_RIGHT(x) ((x)%30==29)
-#define EDGE_BOTTOM(x) ((x)>=870)
+//#define EDGE_LEFT(x) ((x)%30==0)
+//#define EDGE_TOP(x)  ((x)<WIDTH)
+//#define EDGE_RIGHT(x) ((x)%30==29)
+//#define EDGE_BOTTOM(x) ((x)>=870)
 
 typedef struct node_t
 {
@@ -80,38 +83,58 @@ void draw(const char *map)
 // 根据nodes中填写完成的内容，在30x30大小的map中绘制输出的最终结果。
 // 返回值：
 // 如果是没有通路，返回零值，且map中的内容只有一个字符'0'（不是字符串，无null终结符）
-int build(char *map, ulong entry)
+inline int build(char *map, ulong entry)
 {
-	if (nodes[entry].distance == -1)
+#if 0
+	node_t * pnode = &nodes[entry];
+	char   * pmap  = &map[entry];
+
+	if (pnode->distance == 0) {
+		map[0] = '0';
+		return 0;
+	}
+
+	while (pnode->distance != -2000) {
+		*pmap = '2';
+		pmap += pnode->direct;
+		pnode += pnode->direct;
+	}
+
+	*pmap = '2';
+#else
+	if (nodes[entry].distance == 0)
 	{
 		map[0] = '0';
 		return 0;
 	}
 
-	while (nodes[entry].distance != 0)
+	while (nodes[entry].distance != -2000)
 	{
 		map[entry] = '2';
-		switch (nodes[entry].direct)
-		{
-		case RIGHT: entry++; break;
-		case DOWN : entry+=WIDTH; break;
-		case UP   : entry-=WIDTH; break;
-		default   : entry--;
-		}
+		entry += nodes[entry].direct;
 	}
+
+	map[entry] = '2';
+#endif
 	return 1;
 }
 
 #if TEST_IN_CPE
 #define init_cp                                 \
-    ulonglong tick = 0
-    
+    ulonglong tick = read_counter();            \
+    ulonglong tick_a = tick;
+
 #define check_point                             \
     fprintf(stderr, "#%d : %lld\n", __LINE__, read_counter() - tick); \
     tick = read_counter()
+
+#define final_cp								\
+	fprintf(stderr, "Final : %lld\n", read_counter() - tick_a);
+	
 #else
 #define init_cp
 #define check_point
+#define final_cp
 #endif
 
 // 统计输入中'1'的个数
@@ -122,7 +145,8 @@ int onecount()
     ulong count = 0;
     do
     {
-        count += (*p - '0');
+		if ( *p == '1' )
+			count++;
     } while (*(++p));
 
     return count;
@@ -171,6 +195,7 @@ int death()
 int main(int argc, char **argv)
 {
 	int i = 0;
+	int remainder;
 	init_cp;
 	check_point;
 
@@ -184,7 +209,7 @@ int main(int argc, char **argv)
             default:  strcpy((char*)input, C1); break;
         }
     else
-        strcpy((char*)input, C2);
+        strcpy((char*)input, C1);
 #else
 	gets(input);
 	//fread(input, 1, 900, stdin);
@@ -192,7 +217,7 @@ int main(int argc, char **argv)
 
     check_point;
 
-	if (onecount() > 600)
+	//if (onecount() > 600)
 	{
 		if (death())
 		{
@@ -217,40 +242,42 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-        if (!EDGE_LEFT((*pfsTail))) {
+		remainder = (*pfsTail % 30);
+
+		if (remainder != 0) { //        if (!EDGE_LEFT((*pfsTail))) {
             *pfsHead = ((*pfsTail)-1);
             if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
                 nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
                 nodes[*pfsHead].direct   = RIGHT;
                 pfsHead++;
             }
+
+			if (remainder != 29) { //        	if (!EDGE_RIGHT((*pfsTail))) {
+				*pfsHead = ((*pfsTail)+1);
+				if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
+					nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
+					nodes[*pfsHead].direct   = LEFT;
+					pfsHead++;
+				}
+			}
         }
 
-        if (!EDGE_TOP((*pfsTail))) {
+        if (*pfsTail > 29) { //		if (!EDGE_TOP((*pfsTail))) {
             *pfsHead = ((*pfsTail)-WIDTH);
             if ( (input[*pfsHead] == '1') && (nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) ) {
                 nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
                 nodes[*pfsHead].direct   = DOWN;
                 pfsHead++;
             }
-        }
-        
-        if (!EDGE_RIGHT((*pfsTail))) {
-            *pfsHead = ((*pfsTail)+1);
-            if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
-                nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
-                nodes[*pfsHead].direct   = LEFT;
-                pfsHead++;
-            }
-        }
-        
-        if (!EDGE_BOTTOM((*pfsTail))) {
-            *pfsHead = ((*pfsTail)+WIDTH);
-            if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
-                nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
-                nodes[*pfsHead].direct   = UP;
-                pfsHead++;
-            }
+
+			if (*pfsTail < 870) { //			if (!EDGE_BOTTOM((*pfsTail))) {
+				*pfsHead = ((*pfsTail)+WIDTH);
+				if (input[*pfsHead] == '1' && nodes[*pfsHead].distance > nodes[*pfsTail].distance + 1) {
+					nodes[*pfsHead].distance = nodes[*pfsTail].distance + 1;
+					nodes[*pfsHead].direct   = UP;
+					pfsHead++;
+				}
+			}
         }
         
         pfsTail++;
@@ -291,6 +318,7 @@ int main(int argc, char **argv)
 	} while(0);
 
     check_point;
+	final_cp;
 
     return 0;
 }
