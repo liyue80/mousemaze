@@ -5,12 +5,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #define TEST_IN_CPE		1	// 开启性能测试模式  默认值：0
-#define FRIENDLY_OUTPUT 1   // 使用友好的输出 默认值：0
+#define FRIENDLY_OUTPUT 0   // 使用友好的输出 默认值：0
 
 /* 为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
@@ -171,8 +172,7 @@ int main(int argc, char **argv)
 {
 	int i = 0;
 	init_cp;
-
-    check_point;
+	check_point;
 
 #if FRIENDLY_OUTPUT
     if (argc > 1)
@@ -187,9 +187,11 @@ int main(int argc, char **argv)
         strcpy((char*)input, C2);
 #else
 	gets(input);
+	//fread(input, 1, 900, stdin);
 #endif
 
     check_point;
+
 	if (onecount() > 600)
 	{
 		if (death())
@@ -209,7 +211,7 @@ int main(int argc, char **argv)
     check_point;
     while (pfsHead != pfsTail)
     {
-		printf("%d %d\n", i++, *pfsTail);
+		//printf("%d %d\n", i++, *pfsTail);
 		if (*pfsTail == 0 || *pfsTail == 870) {
 			pfsTail++;
 			continue;
