@@ -10,7 +10,7 @@ struct node
 	struct node *from;
 } map[MAP_SIZE + 2][MAP_SIZE + 2] = {0};
 
-#define TEST_IN_CPE		1	// 开启性能测试模式  默认值：0
+#define TEST_IN_CPE		0	// 开启性能测试模式  默认值：0
 
 #if TEST_IN_CPE
 static __inline ulonglong read_counter()

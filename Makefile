@@ -5,10 +5,13 @@ ifeq ($(DEBUG),YES)
 	CFLAGS = -O -g -pipe -D_DEBUG
 	LDFLAGS = -g
 else
-	CFLAGS = -Ofast
+	CFLAGS = -Os -pipe
+	#CFLAGS = -O3 -pipe -fomit-frame-pointer -fforce-addr -falign-functions=4 -fprefetch-loop-arrays -march=pentium3
+	#-fomit-frame-pointer -march=pentium4
 	#-minline-all-stringops
 	#-pipe -mmmx -msse3 
-	LDFLAGS = -Wl,-O2 -Wl,--as-needed -s
+	LDFLAGS = -Wl,-Os -Wl,--as-needed -s
+	
 endif
 
 all: main.c
