@@ -11,8 +11,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TEST_IN_CPE		0	// 开启性能测试模式，在CPE_Check中显示计算耗时，不会导致CPE_Check失败  默认值：0
-#define FRIENDLY_OUTPUT 0   // 使用友好的输出，会导致CPE_Check失败 默认值：0
+#define TEST_IN_CPE		0	/* 开启性能测试模式，在CPE_Check中显示计算耗时，不会导致CPE_Check 失败，但多余的IO 会增加执行的时间  默认值：0 */
+#define FRIENDLY_OUTPUT 0   /* 使用友好的输出，会导致CPE_Check 失败 默认值：0 */
 
 /* 重要：为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
@@ -39,11 +39,6 @@ typedef unsigned long long ulonglong;
 #define DOWN   30
 #define RIGHT  1
 
-//#define EDGE_LEFT(x) ((x)%30==0)
-//#define EDGE_TOP(x)  ((x)<WIDTH)
-//#define EDGE_RIGHT(x) ((x)%30==29)
-//#define EDGE_BOTTOM(x) ((x)>=870)
-
 typedef struct node_t
 {
     long  distance;
@@ -60,13 +55,13 @@ int   *pfsHead, *pfsTail;
 static __inline ulonglong read_counter()
 {
     ulonglong ts;
-#if defined(_MSC_VER)
+  #if defined(_MSC_VER)
     QueryPerformanceCounter((LARGE_INTEGER*)&ts);
-#else
+  #else
     ulong ts1, ts2;
     __asm__ __volatile__("rdtsc\n\t":"=a"(ts1), "=d"(ts2));
     ts = ((ulonglong) ts2 << 32) | ((ulonglong) ts1);
-#endif
+  #endif
     return ts;
 }
 #endif
@@ -89,25 +84,7 @@ void draw(const char *map)
 // 返回值：返回指向字符串末尾应当是'\0'的位置，但此函数不会填'\0'，调用者应注意。
 inline char* build(char *map, unsigned entry)
 {
-#if 0
 	/* 这里使用指针反而降低速度 ???  */
-	node_t * pnode = &nodes[entry];
-	char   * pmap  = &map[entry];
-
-	if (pnode->distance == 0) {
-		map[0] = '0';
-		return &map[1];
-	}
-
-	while (pnode->distance != DISTANCE_ZERO) {
-		*pmap = '2';
-		pmap += pnode->direct;
-		pnode += pnode->direct;
-	}
-
-	*pmap = '2';
-	return ++pmap;
-#else
 	char * ret;
 	if (nodes[entry].distance == 0)
 	{
@@ -126,7 +103,6 @@ inline char* build(char *map, unsigned entry)
 	}
 
 	return ret;
-#endif
 }
 
 #if TEST_IN_CPE
@@ -147,21 +123,6 @@ inline char* build(char *map, unsigned entry)
 #define final_cp
 #endif
 
-// 统计输入中'1'的个数
-int onecount()
-{
-    char * p = input;
-	int a = strlen(input);
-    ulong count = 0;
-    do
-    {
-		if ( *p == '1' )
-			count++;
-    } while (*(++p));
-
-    return count;
-}
-
 // 被death()调用，递归扩展'0'，直到遇到底边界时返回1，表明起点和终点之间被'0'阻隔，无法通过；或者遇到其它边界时返回0。
 int spread(ulong offset)
 {
@@ -181,7 +142,10 @@ int spread(ulong offset)
 }
 
 // 判断出口入口间是否有通路。
-ulong offsets[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,59,89,119,149,179,209,239,269,299,329,359,389,419,449,479,509,539,569,599,629,659,689,719,749,779,809,839,869,0};
+ulong offsets[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+    21,22,23,24,25,26,27,28,29,59,89,119,149,179,209,239,269,299,329,
+    359,389,419,449,479,509,539,569,599,629,659,689,719,749,779,809,839,869,0};
+
 int death()
 {
     ulong *p;
@@ -201,7 +165,6 @@ int death()
 
     return 0;
 }
-
 
 int i;
 int remainde;
@@ -225,19 +188,15 @@ int main(int argc, char **argv)
         strcpy((char*)input, C1);
 #else
 	gets(input);
-	//fread(input, 1, 900, stdin);
 #endif
 
     check_point;
 
-	//if (onecount() > 600)
+	if (death())
 	{
-		if (death())
-		{
-            check_point;
-			printf("00");
-			exit(0);
-		}
+        check_point;
+		printf("00");
+		exit(0);
 	}
 
     check_point;
@@ -249,7 +208,6 @@ int main(int argc, char **argv)
     check_point;
     while (pfsHead != pfsTail)
     {
-		//printf("%d %d\n", i++, *pfsTail);
 		if (*pfsTail == 0 || *pfsTail == 870) {
 			pfsTail++;
 			continue;
@@ -306,26 +264,6 @@ int main(int argc, char **argv)
 		memmove(pout, pbkup, 900);
 	pout = build(pout, 870);
 	*pout = '\0';
-#if 0
-	if (build(input, 0))
-	{
-		outlen+=900;
-		if (build(&input[900], 870))
-			outlen+=900;
-		else
-			outlen++;
-	}
-	else
-	{
-		outlen++;
-		memcpy(&input[1], &input[900], 900);
-		if(build(&input[1], 870))
-			outlen+=900;
-		else
-			outlen++;
-	}
-	input[outlen]=0;
-#endif
 
 #if !FRIENDLY_OUTPUT
 	puts(input);
