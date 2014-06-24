@@ -1,4 +1,4 @@
-OUTPUT = main.exe
+OUTPUT = rc2_yue.exe
 CC = gcc
 
 ifeq ($(DEBUG),YES)
