@@ -9,8 +9,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TEST_IN_CPE		0	/* 开启性能测试模式，在CPE_Check中显示计算耗时，不会导致CPE_Check 失败，但多余的IO 会增加执行的时间  默认值：0 */
-#define FRIENDLY_OUTPUT 1   /* 使用友好的输出，会导致CPE_Check 失败 默认值：0 */
+#define TEST_IN_CPE		1	/* 开启性能测试模式，在CPE_Check中显示计算耗时，不会导致CPE_Check 失败，但多余的IO 会增加执行的时间  默认值：0 */
+#define FRIENDLY_OUTPUT 0   /* 使用友好的输出，会导致CPE_Check 失败 默认值：0 */
 
 /* 重要：为了优化代码，程序中使用了相关立即数，所以不能改动WIDTH 和HEIGHT 的值*/
 #define WIDTH  30
@@ -227,9 +227,10 @@ int main(int argc, char **argv)
 
     draw(input);
 #else
-	gets(input);
+    /* read() is much faster than gets() */
+	while (read(0, input, sizeof(input))==-1);  /* leave this loop at EOF */
+    //gets(input);
 #endif
-
     check_point;
 #if 1
 	if (death())
@@ -309,6 +310,7 @@ int main(int argc, char **argv)
 
 #if !FRIENDLY_OUTPUT
 	puts(input);
+    //write(1, input, 1800);
 #else
 	draw(draw(input));
 #endif
