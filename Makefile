@@ -5,8 +5,9 @@ ifeq ($(DEBUG),YES)
 	CFLAGS = -O -g -pipe -D_DEBUG
 	LDFLAGS = -g
 else
-	CFLAGS = -Os -pipe
-	LDFLAGS = -Wl,-Os -Wl,--as-needed -s
+	CFLAGS = -Os -pipe -march=core2
+	LDFLAGS = -Wl,--as-needed
+	#-Wl,-Os -s
 endif
 
 all: main.c
